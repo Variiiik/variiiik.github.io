@@ -22,14 +22,12 @@ h1 {
 .driver {
   cursor: pointer;
   padding: 0.5rem 1rem;
-  background-color: #ffffff;
-  border: 1px solid #dee2e6;
-  border-radius: 0.25rem;
+  background-color: #a57c00;
   transition: background-color 0.2s;
 }
 
 .driver:hover {
-  background-color: #f1f1f1;
+  background-color: #ffc105;
 }
 
 .driverDetails {
