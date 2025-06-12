@@ -5,15 +5,19 @@ let startTime = null;
 // Lae andmebaasist sõitjad
 async function loadDriversFromDB() {
   try {
-    const res = await fetch('/api/drivers');
-    const data = await res.json();
+    const response = await fetch('https://spotter-backend-asvo.onrender.com/api/drivers');
+    const data = await response.json();
 
-    drivers = data; // Kuna API tagastab massiivi
-    render();
-  } catch (err) {
-    console.error('Andmete laadimine ebaõnnestus:', err);
+    if (Array.isArray(data)) {
+      render(data);
+    } else {
+      console.error('Saadud andmed ei ole massiiv:', data);
+    }
+  } catch (error) {
+    console.error('Viga sõitjate laadimisel:', error);
   }
 }
+
 
 // Kujunda sõitjate nimekiri
 function render() {
