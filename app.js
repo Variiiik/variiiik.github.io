@@ -32,7 +32,9 @@ function toggleTimer(index) {
 
 function render() {
   const container = document.getElementById("drivers");
+  if (!container) return;
   container.innerHTML = "";
+
   drivers.forEach((d, i) => {
     const box = document.createElement("div");
     box.className = "driver";
@@ -51,11 +53,13 @@ function render() {
     });
     container.appendChild(box);
   });
+
   renderAnalysis();
 }
 
 function renderAnalysis() {
   const a = document.getElementById("analysis");
+  if (!a) return;
   a.innerHTML = "";
 
   let globalBest = null;
@@ -80,11 +84,14 @@ function renderAnalysis() {
   }
 }
 
-function switchTab(tab, event) {
+function switchTab(tab) {
   document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
   document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
   event.target.classList.add("active");
+
+  if (tab === "measure") render();
+  if (tab === "analyze") renderAnalysis();
 }
 
 window.onload = render;
