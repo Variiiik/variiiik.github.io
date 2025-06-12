@@ -203,7 +203,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function loadAnalysis() {
+  
+
+  
+
+  loadDriversFromDB('Pro');
+});
+
+function openTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.style.display = 'none';
+    });
+    const el = document.getElementById(tabId);
+    if (el) el.style.display = 'block';
+
+    if (tabId === 'analyse') {
+      loadAnalysis();
+    }
+  }
+async function loadAnalysis() {
     try {
       const res = await fetch(`${API_BASE}/api/analysis/top`);
       const data = await res.json();
@@ -228,18 +246,3 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Analüüsi laadimine ebaõnnestus:', err);
     }
   }
-
-  function openTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(tab => {
-      tab.style.display = 'none';
-    });
-    const el = document.getElementById(tabId);
-    if (el) el.style.display = 'block';
-
-    if (tabId === 'analyse') {
-      loadAnalysis();
-    }
-  }
-
-  loadDriversFromDB('Pro');
-});
