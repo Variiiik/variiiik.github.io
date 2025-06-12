@@ -106,11 +106,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Sünkrooni – töötab POST-iga
-  window.syncDrivers = async function(driverClass) {
+  window.syncDrivers = async function (driverClass) {
     try {
-      const response = await fetch(`${API_BASE}/api/sync-driver/${driverClass}`, {
-        method: 'POST'
+      const response = await fetch(`${API_BASE}/api/sync-drivers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ competitionClass: driverClass })
       });
+  
       if (response.ok) {
         console.log(`${driverClass} sünkroonitud`);
         await loadDriversFromDB();
