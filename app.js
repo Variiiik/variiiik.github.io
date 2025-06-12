@@ -121,3 +121,6 @@ window.syncDrivers = async function(driverClass) {
 
 // Lae esmasel avamisel
 loadDriversFromDB();
+document.getElementById('syncPro').addEventListener('click', () => syncDrivers('Pro'));
+document.getElementById('syncPro2').addEventListener('click', () => syncDrivers('Pro2'));
+
