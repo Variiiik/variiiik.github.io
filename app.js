@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let drivers = [];
 let timerInterval = null;
 let startTime = null;
-
+loadDriversFromDB();
 const API_BASE = 'https://spotter-backend-asvo.onrender.com';
 document.getElementById('syncPro').addEventListener('click', () => syncDrivers('Pro'));
 document.getElementById('syncPro2').addEventListener('click', () => syncDrivers('Pro2'));
@@ -120,9 +120,6 @@ window.syncDrivers = async function(driverClass) {
     console.error('Sünkroonimisviga:', err);
   }
 };
-
-// Lae esmasel avamisel
-loadDriversFromDB();
 
 });
 
