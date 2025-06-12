@@ -189,6 +189,39 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Sünkroonimisviga:', err);
     }
   }
+  
+  async function loadAnalysis() {
+  try {
+    const res = await fetch(`${API_BASE}/api/analysis/top`);
+    const data = await res.json();
+    const tbody = document.querySelector('#topDriversTable tbody');
+    tbody.innerHTML = '';
+
+    data.forEach((d, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${d.competitorName}</td>
+        <td>${d.competitionNumbers || '—'}</td>
+        <td>${formatTime(d.bestTime)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Analüüsi laadimine ebaõnnestus:', err);
+  }
+}
+  function openTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.style.display = 'none';
+  });
+  const el = document.getElementById(tabId);
+  if (el) el.style.display = 'block';
+
+  if (tabId === 'analyse') {
+    loadAnalysis();
+  }
+}
 
   loadDriversFromDB('Pro');
 });
