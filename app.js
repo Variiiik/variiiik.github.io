@@ -5,15 +5,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let timerInterval = null;
   let startTime = null;
   let selectedDriverId = null;
-  
-function formatTime(ms) {
-  const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  const centiseconds = Math.floor((ms % 1000) / 10);
 
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
-}
+  function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const centiseconds = Math.floor((ms % 1000) / 10);
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+  }
 
   async function loadDriversFromDB(classFilter = null) {
     try {
@@ -42,7 +41,11 @@ function formatTime(ms) {
       const el = document.createElement('div');
       el.className = 'driver';
       el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality || driver.countryCode})`;
-      el.addEventListener('click', () => toggleDetails(driver, wrapper));
+
+      el.addEventListener('click', () => {
+        toggleDetails(driver, wrapper);
+        selectedDriverId = driver.competitorId;
+      });
 
       wrapper.appendChild(el);
       driverList.appendChild(wrapper);
@@ -50,7 +53,6 @@ function formatTime(ms) {
   }
 
   async function toggleDetails(driver, wrapper) {
-    // Eemalda teised detailid
     document.querySelectorAll('.driverDetails').forEach(el => el.remove());
 
     if (wrapper.classList.contains('open')) {
@@ -60,7 +62,6 @@ function formatTime(ms) {
 
     document.querySelectorAll('.driver-wrapper').forEach(w => w.classList.remove('open'));
     wrapper.classList.add('open');
-    selectedDriverId = driver.competitorId;
 
     try {
       const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}`);
@@ -77,26 +78,25 @@ function formatTime(ms) {
         <div><strong>Riik:</strong> <span class="value">${detail.countryCode || driver.nationality || '—'}</span></div>
       `;
 
-      if (driver.details?.times && driver.details.times.length > 0) {
-        const timesHtml = driver.details.times
+      if (detail.times && detail.times.length > 0) {
+        const timesHtml = detail.times
           .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t)}</span></div>`)
           .join('');
         detailsEl.innerHTML += `<div><strong>Ajad:</strong></div>${timesHtml}`;
       } else {
         detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
       }
-      
+
       wrapper.appendChild(detailsEl);
     } catch (err) {
       console.error('Detailide laadimine ebaõnnestus:', err);
     }
   }
 
-  // Taimeri start/stop
   document.getElementById('startBtn').addEventListener('click', () => {
     if (!timerInterval) {
       startTime = Date.now();
-      timerInterval = setInterval(updateTimer, 100);
+      timerInterval = setInterval(updateTimer, 50);
     }
   });
 
@@ -107,24 +107,19 @@ function formatTime(ms) {
 
     const now = Date.now();
     const diff = now - startTime;
-    const minutes = Math.floor(diff / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
-    const centiseconds = Math.floor((diff % 1000) / 10);
-    
-    const timeInSeconds = minutes * 60 + seconds + centiseconds / 100;
 
-    document.getElementById('timerDisplay').textContent = `${timeInSeconds} s`;
+    document.getElementById('timerDisplay').textContent = formatTime(diff);
 
     if (selectedDriverId) {
       try {
         const res = await fetch(`${API_BASE}/api/drivers/${selectedDriverId}/time`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ time: timeInSeconds })
+          body: JSON.stringify({ time: diff })
         });
 
         if (res.ok) {
-          await loadDriversFromDB(); // värskenda ka list
+          //await loadDriversFromDB(); // värskenda list
         }
       } catch (err) {
         console.error('Aja salvestamine ebaõnnestus:', err);
@@ -133,18 +128,11 @@ function formatTime(ms) {
   });
 
   function updateTimer() {
-  const now = Date.now();
-  const diff = now - startTime;
-
-  const minutes = Math.floor(diff / 60000);
-  const seconds = Math.floor((diff % 60000) / 1000);
-  const centiseconds = Math.floor((diff % 1000) / 10);
-
-  document.getElementById('timerDisplay').textContent =
-    `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+    const now = Date.now();
+    const diff = now - startTime;
+    document.getElementById('timerDisplay').textContent = formatTime(diff);
   }
 
-  // Sünkroniseerimisnupud
   const syncProBtn = document.getElementById('syncPro');
   const syncPro2Btn = document.getElementById('syncPro2');
 
@@ -167,6 +155,5 @@ function formatTime(ms) {
     }
   }
 
-  // Alustuseks lae Pro klass
   loadDriversFromDB('Pro');
 });
