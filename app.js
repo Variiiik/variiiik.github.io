@@ -82,8 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (driver.times && driver.times.length > 0) {
         const timesHtml = driver.times
-          .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t.time)}</span></div>`)
+          .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t.time * 1000)}</span></div>`)
           .join('');
+
         detailsEl.innerHTML += `<div><strong>Ajad:</strong></div>${timesHtml}`;
       } else {
         detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
