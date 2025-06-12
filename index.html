@@ -81,6 +81,22 @@
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
   <script src="app.js"></script>
+  <script>
+  // Lihtne openTab, mis töötab koos app.js funktsiooniga
+  function openTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.style.display = 'none';
+    });
+    const el = document.getElementById(tabId);
+    if (el) el.style.display = 'block';
+    if (tabId === 'analyse' && typeof loadAnalysis === 'function') {
+      loadAnalysis(); // ⬅️ Lisa see rida
+    }
+  }
 
+  document.addEventListener('DOMContentLoaded', () => {
+    openTab('timerTab');
+  });
+</script>
 </body>
 </html>
