@@ -36,7 +36,18 @@ h1, h2, h3 {
 .tab-button.active {
   background-color: #0a84ff;
 }
+button.danger {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
 
+button.danger:hover {
+  background-color: #c0392b;
+}
 /* Tab-sisu */
 .tab-content {
   display: none;
