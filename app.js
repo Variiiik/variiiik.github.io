@@ -80,14 +80,15 @@ document.addEventListener('DOMContentLoaded', () => {
         <div><strong>Riik:</strong> <span class="value">${detail.countryCode || driver.nationality || '—'}</span></div>
       `;
       
-      if (Array.isArray(detail.times) && detail.times.length > 0) {
-        const timesHtml = detail.times
-          .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t)}</span></div>`)
+      if (driver.times && driver.times.length > 0) {
+        const timesHtml = driver.times
+          .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t.time)}</span></div>`)
           .join('');
         detailsEl.innerHTML += `<div><strong>Ajad:</strong></div>${timesHtml}`;
       } else {
         detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
       }
+
       const deleteBtn = document.createElement('button');
       deleteBtn.textContent = 'Kustuta ajad';
       deleteBtn.style.marginTop = '10px';
