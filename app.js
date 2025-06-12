@@ -41,11 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  function toggleDetails(driver, wrapper) {
+  async function toggleDetails(driver, wrapper) {
     // Eemalda teistelt detailid
     document.querySelectorAll('.driverDetails').forEach(el => el.remove());
   
-    // Kui detailid juba avatud selles wrapperis, siis sulge
+    // Kui juba avatud, sulge
     if (wrapper.classList.contains('open')) {
       wrapper.classList.remove('open');
       return;
@@ -55,18 +55,28 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.driver-wrapper').forEach(w => w.classList.remove('open'));
     wrapper.classList.add('open');
   
-    const details = document.createElement('div');
-    details.className = 'driverDetails';
-    details.innerHTML = `
-      <div><strong>Auto:</strong> ${driver.car || '—'}</div>
-      <div><strong>Meeskond:</strong> ${driver.teamName || '—'}</div>
-      <div><strong>Kvalifikatsioon:</strong> ${driver.qualificationsBestResult || '—'} (max: ${driver.qualificationsHighestScore || 0})</div>
-      <div><strong>Tandem:</strong> ${driver.tandemsBestResult || '—'}</div>
-      <div><strong>Riik:</strong> ${driver.countryCode || driver.nationality || '—'}</div>
-    `;
+    // Lae detailid API kaudu
+    try {
+      const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}`);
+      if (!res.ok) throw new Error('Andmeid ei leitud');
+      const details = await res.json();
   
-    wrapper.appendChild(details);
+      const detailsEl = document.createElement('div');
+      detailsEl.className = 'driverDetails';
+      detailsEl.innerHTML = `
+        <div><strong>Auto:</strong> ${details.car || '—'}</div>
+        <div><strong>Meeskond:</strong> ${details.teamName || '—'}</div>
+        <div><strong>Kvalifikatsioon:</strong> ${details.qualificationsBestResult || '—'} (max: ${details.qualificationsHighestScore || 0})</div>
+        <div><strong>Tandem:</strong> ${details.tandemsBestResult || '—'}</div>
+        <div><strong>Riik:</strong> ${details.countryCode || driver.nationality || '—'}</div>
+      `;
+  
+      wrapper.appendChild(detailsEl);
+    } catch (err) {
+      console.error('Detailide laadimine ebaõnnestus:', err);
+    }
   }
+
 
   // Start/Stop taimer
   document.getElementById('startBtn').addEventListener('click', () => {
