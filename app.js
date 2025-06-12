@@ -109,9 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.syncDrivers = async function (driverClass) {
     try {
       const response = await fetch(`${API_BASE}/api/sync-drivers/${driverClass}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ competitionClass: driverClass })
+        method: 'POST'
       });
   
       if (response.ok) {
