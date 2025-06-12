@@ -2,8 +2,10 @@ let drivers = [];
 
 // Lae kõik sõitjad serverist
 async function loadDriversFromDB() {
-  const res = await fetch('https://spotter-backend-asvo.onrender.com/api/drivers');
-  drivers = await res.json();
+  const res = await fetch('/api/drivers');
+  const data = await res.json();
+
+  drivers = data; // ← see on nüüd korrektne
   render();
 }
 
@@ -47,31 +49,14 @@ async function toggleTimer(index) {
 
 // UI renderdamine
 function render() {
-  const container = document.getElementById("drivers");
-  container.innerHTML = "";
-  drivers.forEach((d, i) => {
-    const box = document.createElement("div");
-    box.className = "driver";
+  const driverList = document.getElementById('driverList');
+  driverList.innerHTML = '';
 
-    const title = document.createElement("h3");
-    title.textContent = d.name;
-    box.appendChild(title);
-
-    const btn = document.createElement("button");
-    btn.textContent = d.running ? "Stop" : "Start";
-    btn.onclick = () => toggleTimer(i);
-    box.appendChild(btn);
-
-    d.times.forEach((t, j) => {
-      const e = document.createElement("div");
-      e.className = "log-entry";
-      e.innerHTML = `#${j + 1} <span class="time">${t.time}s</span> – <span class="note">${t.note}</span>`;
-      box.appendChild(e);
-    });
-
-    container.appendChild(box);
+  drivers.forEach(driver => {
+    const el = document.createElement('div');
+    el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality})`;
+    driverList.appendChild(el);
   });
-  renderAnalysis();
 }
 
 // Analüüsi tab
