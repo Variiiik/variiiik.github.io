@@ -89,7 +89,29 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
       }
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Kustuta ajad';
+      deleteBtn.style.marginTop = '10px';
+      deleteBtn.addEventListener('click', async () => {
+        if (!confirm('Kas oled kindel, et soovid kõik ajad kustutada?')) return;
+      
+        try {
+          const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}/times`, {
+            method: 'DELETE'
+          });
+      
+          if (res.ok) {
+            console.log('Ajad kustutatud');
+            await loadDriversFromDB(); // Värskenda list
+          } else {
+            console.error('Ajad ei saanud kustutatud');
+          }
+        } catch (err) {
+          console.error('Viga kustutamisel:', err);
+        }
+      });
 
+      detailsEl.appendChild(deleteBtn);
 
       wrapper.appendChild(detailsEl);
     } catch (err) {
