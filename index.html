@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Spotter App</title>
+  <title>Spotter Tool</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="data:," />
 
@@ -35,7 +35,7 @@
 </head>
 <body>
   <div class="container py-4">
-    <h1 class="text-center mb-4">Spotter App</h1>
+    <h1 class="text-center mb-4">Spotter Toolbox</h1>
 
     <ul class="nav nav-tabs mb-4" id="tabNav">
       <li class="nav-item">
@@ -45,19 +45,13 @@
         <button class="nav-link" onclick="openTab('analyse')">Analüüs</button>
       </li>
     </ul>
-
-    <div id="timerTab" class="tab-content">
-      <h2>Spotteri Taimer</h2>
-
+      <h3 class="mt-4">Sõitjad</h3>
+      <div id="driverList" class="driver-list"></div>
+    </div>
       <div class="mb-3">
         <button id="syncPro" class="btn btn-outline-light">Sünkrooni Pro</button>
         <!-- <button id="syncPro2" class="btn btn-outline-secondary">Sünkrooni Pro2</button> -->
       </div>
-
-      <h3 class="mt-4">Sõitjad</h3>
-      <div id="driverList" class="driver-list"></div>
-    </div>
-
     <div id="analyse" class="tab-content" style="display: none;">
       <h2>Top 5 Kiiremat Sõitjat</h2>
       <table id="topDriversTable" class="table table-dark table-bordered">
