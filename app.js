@@ -79,12 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <div><strong>Tandem:</strong> <span class="value">${detail.tandemsBestResult || '—'}</span></div>
         <div><strong>Riik:</strong> <span class="value">${detail.countryCode || driver.nationality || '—'}</span></div>
       `;
-      
+
       if (driver.times && driver.times.length > 0) {
         const timesHtml = driver.times
           .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t.time * 1000)}</span></div>`)
           .join('');
-
         detailsEl.innerHTML += `<div><strong>Ajad:</strong></div>${timesHtml}`;
       } else {
         detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
@@ -93,20 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const deleteBtn = document.createElement('button');
       deleteBtn.textContent = 'Kustuta ajad';
       deleteBtn.style.marginTop = '10px';
+      deleteBtn.className = 'btn btn-danger btn-sm';
       deleteBtn.addEventListener('click', async () => {
         if (!confirm('Kas oled kindel, et soovid kõik ajad kustutada?')) return;
-      
+
         try {
           await fetch(`${API_BASE}/api/drivers/${selectedDriverId}/times`, {
             method: 'DELETE'
           });
-      
-          if (res.ok) {
-            console.log('Ajad kustutatud');
-            await loadDriversFromDB(); // Värskenda list
-          } else {
-            console.error('Ajad ei saanud kustutatud');
-          }
+
+          await loadDriversFromDB(); // Värskenda list
         } catch (err) {
           console.error('Viga kustutamisel:', err);
         }
@@ -114,67 +109,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
       detailsEl.appendChild(deleteBtn);
 
+      // ⏱ Taimer + nupud
+      const timerEl = document.createElement('div');
+      timerEl.className = 'timer mt-2';
+      timerEl.textContent = '00:00.00';
+
+      const startBtn = document.createElement('button');
+      startBtn.textContent = 'Start';
+      startBtn.className = 'btn btn-success btn-sm me-2 mt-2';
+
+      const stopBtn = document.createElement('button');
+      stopBtn.textContent = 'Stop';
+      stopBtn.className = 'btn btn-warning btn-sm mt-2';
+      stopBtn.disabled = true;
+
+      let localStart = null;
+      let localTimer = null;
+
+      function format(ms) {
+        const min = Math.floor(ms / 60000);
+        const sec = Math.floor((ms % 60000) / 1000);
+        const cs = Math.floor((ms % 1000) / 10);
+        return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+      }
+
+      startBtn.addEventListener('click', () => {
+        localStart = Date.now();
+        localTimer = setInterval(() => {
+          timerEl.textContent = format(Date.now() - localStart);
+        }, 50);
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+      });
+
+      stopBtn.addEventListener('click', async () => {
+        clearInterval(localTimer);
+        const final = Date.now() - localStart;
+        timerEl.textContent = format(final);
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+
+        const seconds = Math.floor(final / 1000);
+        const centis = Math.floor((final % 1000) / 10);
+        const totalSeconds = seconds + centis / 100;
+
+        try {
+          const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}/time`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ time: totalSeconds })
+          });
+
+          if (res.ok) {
+            console.log('Aeg salvestatud');
+            await loadDriversFromDB(); // värskenda
+          } else {
+            console.error('Salvestamine ebaõnnestus');
+          }
+        } catch (err) {
+          console.error('Võrguviga:', err);
+        }
+      });
+
+      detailsEl.appendChild(timerEl);
+      detailsEl.appendChild(startBtn);
+      detailsEl.appendChild(stopBtn);
+
       wrapper.appendChild(detailsEl);
     } catch (err) {
       console.error('Detailide laadimine ebaõnnestus:', err);
     }
   }
 
-  document.getElementById('startBtn').addEventListener('click', () => {
-    if (!timerInterval) {
-      startTime = Date.now();
-      timerInterval = setInterval(updateTimer, 50);
-    }
-  });
-
-  document.getElementById('stopBtn').addEventListener('click', async () => {
-  if (!timerInterval) return;
-  clearInterval(timerInterval);
-  timerInterval = null;
-
-  const now = Date.now();
-  const diff = now - startTime;
-
-  const minutes = Math.floor(diff / 60000);
-  const seconds = Math.floor((diff % 60000) / 1000);
-  const centiseconds = Math.floor((diff % 1000) / 10);
-
-  const timeInSeconds = minutes * 60 + seconds + centiseconds / 100;
-
-  document.getElementById('timerDisplay').textContent =
-    `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
-
-  if (selectedDriverId) {
-    try {
-      const res = await fetch(`${API_BASE}/api/drivers/${selectedDriverId}/time`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ time: timeInSeconds })
-      });
-
-      if (res.ok) {
-        await loadDriversFromDB(); // värskenda list
-      } else {
-        console.error('Aja salvestamine ebaõnnestus');
-      }
-    } catch (err) {
-      console.error('Aja salvestamine ebaõnnestus:', err);
-    }
-  }
-});
-
-
-  function updateTimer() {
-    const now = Date.now();
-    const diff = now - startTime;
-    document.getElementById('timerDisplay').textContent = formatTime(diff);
-  }
-
   const syncProBtn = document.getElementById('syncPro');
-  //const syncPro2Btn = document.getElementById('syncPro2');
-
   if (syncProBtn) syncProBtn.addEventListener('click', () => syncDrivers('Pro'));
-  //if (syncPro2Btn) syncPro2Btn.addEventListener('click', () => syncDrivers('Pro2'));
 
   async function syncDrivers(driverClass) {
     try {
@@ -191,51 +199,42 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Sünkroonimisviga:', err);
     }
   }
-  
+
   async function loadAnalysis() {
-  try {
-    const res = await fetch(`${API_BASE}/api/analysis/top`);
-    const data = await res.json();
-    const tbody = document.querySelector('#topDriversTable tbody');
-    tbody.innerHTML = '';
+    try {
+      const res = await fetch(`${API_BASE}/api/analysis/top`);
+      const data = await res.json();
+      const tbody = document.querySelector('#topDriversTable tbody');
+      tbody.innerHTML = '';
 
-    data.forEach((d, index) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${d.competitorName}</td>
-        <td>${d.competitionNumbers || '—'}</td>
-        <td>${formatTime(d.bestTime)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-    data.forEach((d, index) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${d.competitorName}</td>
-      <td>${d.competitionNumbers || '—'}</td>
-      <td>${formatTime(d.bestTime * 1000)}</td>
-      <td>${formatTime(d.averageTime * 1000)}</td>
-      <td>${d.attemptCount}</td>
-    `;
-    tbody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error('Analüüsi laadimine ebaõnnestus:', err);
+      data.forEach((d, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${d.competitorName}</td>
+          <td>${d.competitionNumbers || '—'}</td>
+          <td>${formatTime(d.bestTime * 1000)}</td>
+          <td>${formatTime(d.averageTime * 1000)}</td>
+          <td>${d.attemptCount}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error('Analüüsi laadimine ebaõnnestus:', err);
+    }
   }
-}
+
   function openTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(tab => {
-    tab.style.display = 'none';
-  });
-  const el = document.getElementById(tabId);
-  if (el) el.style.display = 'block';
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.style.display = 'none';
+    });
+    const el = document.getElementById(tabId);
+    if (el) el.style.display = 'block';
 
-  if (tabId === 'analyse') {
-    loadAnalysis();
+    if (tabId === 'analyse') {
+      loadAnalysis();
+    }
   }
-}
 
   loadDriversFromDB('Pro');
 });
