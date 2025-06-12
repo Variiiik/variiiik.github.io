@@ -109,7 +109,7 @@ document.getElementById('addDriverForm').addEventListener('submit', async (e) =>
 // Sünkrooni
 window.syncDrivers = async function(driverClass) {
   try {
-    const response = await fetch(`${API_BASE}/api/sync/${driverClass}`);
+    const response = await fetch(`${API_BASE}/api/sync-drivers/${driverClass}`);
     if (response.ok) {
       console.log(`${driverClass} sünkroonitud`);
       await loadDriversFromDB();
