@@ -209,6 +209,18 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
       tbody.appendChild(tr);
     });
+    data.forEach((d, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${d.competitorName}</td>
+      <td>${d.competitionNumbers || '—'}</td>
+      <td>${formatTime(d.bestTime * 1000)}</td>
+      <td>${formatTime(d.averageTime * 1000)}</td>
+      <td>${d.attemptCount}</td>
+    `;
+    tbody.appendChild(tr);
+    });
   } catch (err) {
     console.error('Analüüsi laadimine ebaõnnestus:', err);
   }
