@@ -2,10 +2,9 @@ let drivers = [];
 let timerInterval = null;
 let startTime = null;
 
-// API URL
 const API_BASE = 'https://spotter-backend-asvo.onrender.com';
 
-// Lae sõitjad
+// Lae andmed
 async function loadDriversFromDB() {
   try {
     const response = await fetch(`${API_BASE}/api/drivers`);
@@ -21,36 +20,22 @@ async function loadDriversFromDB() {
   }
 }
 
-// Sünkrooni nupuvajutusega (kas Pro või Pro2)
-async function syncDrivers(driverClass) {
-  try {
-    const response = await fetch(`${API_BASE}/api/sync/${driverClass}`);
-    if (response.ok) {
-      console.log(`${driverClass} sünkroonitud`);
-      await loadDriversFromDB();
-    } else {
-      console.error('Sünkroonimine ebaõnnestus');
-    }
-  } catch (err) {
-    console.error('Sünkroonimisviga:', err);
-  }
-}
-
-// Kuvab nimekirja
+// Kuvamine
 function render() {
   const driverList = document.getElementById('driverList');
+  if (!driverList) return;
   driverList.innerHTML = '';
 
   drivers.forEach(driver => {
     const el = document.createElement('div');
     el.className = 'driver';
-    el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality})`;
+    el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality || driver.countryCode})`;
     el.addEventListener('click', () => showDetails(driver));
     driverList.appendChild(el);
   });
 }
 
-// Näita sõitja detaile
+// Detailvaade
 function showDetails(driver) {
   document.getElementById('detailName').textContent = driver.competitorName || '—';
   document.getElementById('detailCar').textContent = driver.car || '—';
@@ -119,5 +104,20 @@ document.getElementById('addDriverForm').addEventListener('submit', async (e) =>
   }
 });
 
-// Alglaadimine
+// Sünkrooni
+window.syncDrivers = async function(driverClass) {
+  try {
+    const response = await fetch(`${API_BASE}/api/sync/${driverClass}`);
+    if (response.ok) {
+      console.log(`${driverClass} sünkroonitud`);
+      await loadDriversFromDB();
+    } else {
+      console.error('Sünkroonimine ebaõnnestus');
+    }
+  } catch (err) {
+    console.error('Sünkroonimisviga:', err);
+  }
+};
+
+// Lae esmasel avamisel
 loadDriversFromDB();
