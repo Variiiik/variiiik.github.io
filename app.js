@@ -218,7 +218,7 @@ async function toggleDetails(driver, wrapper) {
     console.error('Detailide laadimine ebaõnnestus:', err);
   }
 }
-  }
+  
 
   const syncProBtn = document.getElementById('syncPro');
   if (syncProBtn) syncProBtn.addEventListener('click', () => syncDrivers('Pro'));
