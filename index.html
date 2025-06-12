@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html lang="et">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spotteri Ajamõõtja</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Spotteri Tööriist</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>Spotteri Tööriist</h2>
-  <div>
-    <select id="driverSelect"></select>
-    <button onclick="startTiming()">Start</button>
-    <button onclick="stopTiming()">Stop</button>
-  </div>
-  <div id="driverInfo"></div>
-  <div id="log"></div>
 
-  <script src="app.js"></script>
+<h2>Spotteri Ajamõõtja</h2>
+
+<div class="tabs">
+  <button class="active" onclick="switchTab('measure', event)">Ajamõõtmine</button>
+  <button onclick="switchTab('analyze', event)">Analüüs</button>
+</div>
+
+<div id="measure" class="tab-content active">
+  <input id="driverName" placeholder="Lisa võistleja nimi" />
+  <button onclick="addDriver()">Lisa võistleja</button>
+  <div id="drivers"></div>
+</div>
+
+<div id="analyze" class="tab-content">
+  <h3>Kiiremate aegade analüüs</h3>
+  <div id="analysis"></div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
