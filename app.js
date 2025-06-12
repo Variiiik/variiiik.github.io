@@ -34,7 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
   
       const el = document.createElement('div');
       el.className = 'driver';
-      el.textContent = `${driver.nationality || driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality})`;
+      const country = driver.nationality || '--';
+      const number = driver.competitionNumbers || '??';
+      const name = driver.competitorName || 'Nimi puudub';
+      el.textContent = `${country}${number} ${name}`;
       el.addEventListener('click', () => {
       // valime valitud sõitja
       selectedDriver = driver;
@@ -94,6 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <div><strong>Tandem:</strong> <span class="value">${driver.details?.tandemsBestResult || '—'}</span></div>
         <div><strong>Riik:</strong> <span class="value">${driver.details?.countryCode || driver.nationality || '—'}</span></div>
       `;
+      if (driver.details?.times?.length) {
+        detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">${driver.details.times.join(', ')}</span></div>`;
+      }
 
   
       wrapper.appendChild(detailsEl);
