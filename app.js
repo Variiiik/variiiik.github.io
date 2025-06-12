@@ -1,3 +1,4 @@
+document.addEventListener('DOMContentLoaded', () => {
 let drivers = [];
 let timerInterval = null;
 let startTime = null;
@@ -123,4 +124,5 @@ window.syncDrivers = async function(driverClass) {
 loadDriversFromDB();
 document.getElementById('syncPro').addEventListener('click', () => syncDrivers('Pro'));
 document.getElementById('syncPro2').addEventListener('click', () => syncDrivers('Pro2'));
+  });
 
