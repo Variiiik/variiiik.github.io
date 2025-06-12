@@ -11,19 +11,24 @@
 <h2>Spotteri Ajamõõtja</h2>
 
 <div class="tabs">
-  <button class="active" onclick="switchTab('measure', event)">Ajamõõtmine</button>
-  <button onclick="switchTab('analyze', event)">Analüüs</button>
+  <button class="active" onclick="switchTab('measure')">Ajamõõtmine</button>
+  <button onclick="switchTab('analyze')">Analüüs</button>
+  <button onclick="switchTab('driversTab')">Sõitjad</button>
 </div>
 
 <div id="measure" class="tab-content active">
-  <input id="driverName" placeholder="Lisa võistleja nimi" />
-  <button onclick="addDriver()">Lisa võistleja</button>
   <div id="drivers"></div>
 </div>
 
 <div id="analyze" class="tab-content">
   <h3>Kiiremate aegade analüüs</h3>
   <div id="analysis"></div>
+</div>
+
+<div id="driversTab" class="tab-content">
+  <h3>Lisa sõitja</h3>
+  <input id="driverName" placeholder="Sõitja nimi" />
+  <button onclick="addDriver()">Lisa</button>
 </div>
 
 <script src="app.js"></script>
