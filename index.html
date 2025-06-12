@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="et">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Spotter App</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>Spotter App</h1>
@@ -14,42 +14,41 @@
     <button class="tab-button" onclick="openTab('addTab')">Lisa sõitja</button>
   </div>
 
-  <!-- Taimeri tab -->
   <div id="timerTab" class="tab-content">
     <h2>Spotteri Taimer</h2>
     <div id="timerDisplay" class="timer">0.000 s</div>
     <button id="startBtn">Start</button>
     <button id="stopBtn">Stop</button>
-    <br /><br />
-    <button onclick="window.syncDrivers('Pro')">Sünkrooni Pro</button>
-    <button onclick="window.syncDrivers('Pro2')">Sünkrooni Pro2</button>
+    <div style="margin-top: 10px;">
+      <button onclick="syncDrivers('Pro')">Sünkrooni Pro</button>
+      <button onclick="syncDrivers('Pro2')">Sünkrooni Pro2</button>
+    </div>
 
     <h3>Sõitjad</h3>
     <div id="driverList" class="driver-list"></div>
 
-    <div id="driverDetails" class="driver-details" style="display: none;">
+    <div id="driverDetails" class="driver-details" style="display:none;">
       <h3>Detailvaade</h3>
       <p><strong>Nimi:</strong> <span id="detailName"></span></p>
       <p><strong>Auto:</strong> <span id="detailCar"></span></p>
-      <p><strong>Meeskond:</strong> <span id="detailTeam"></span></p>
+      <p><strong>Tiim:</strong> <span id="detailTeam"></span></p>
       <p><strong>Kvalifikatsioon:</strong> <span id="detailQual"></span></p>
-      <p><strong>Tandem:</strong> <span id="detailTandem"></span></p>
+      <p><strong>Tandemid:</strong> <span id="detailTandem"></span></p>
       <p><strong>Riik:</strong> <span id="detailCountry"></span></p>
     </div>
   </div>
 
-  <!-- Sõitja lisamise tab -->
   <div id="addTab" class="tab-content" style="display: none;">
     <h2>Lisa uus sõitja</h2>
     <form id="addDriverForm">
       <label for="nameInput">Nimi:</label>
-      <input type="text" id="nameInput" required />
+      <input type="text" id="nameInput" required>
 
       <label for="numberInput">Stardinumber:</label>
-      <input type="number" id="numberInput" required />
+      <input type="number" id="numberInput" required>
 
       <label for="nationalityInput">Rahvus (EE/LV/LT/...):</label>
-      <input type="text" id="nationalityInput" required />
+      <input type="text" id="nationalityInput" required>
 
       <button type="submit">Lisa</button>
     </form>
@@ -62,7 +61,6 @@
         tab.style.display = 'none';
       });
       document.getElementById(tabId).style.display = 'block';
-      document.getElementById('driverDetails').style.display = 'none';
     }
   </script>
 </body>
