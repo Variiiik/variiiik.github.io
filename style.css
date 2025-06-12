@@ -23,6 +23,7 @@ h1 {
   cursor: pointer;
   padding: 0.5rem 1rem;
   background-color: #a57c00;
+  border-radius: 0.25rem;
   transition: background-color 0.2s;
 }
 
