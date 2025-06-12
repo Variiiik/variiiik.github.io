@@ -64,6 +64,11 @@ h1, h2, h3 {
   padding-bottom: 5px;
 }
 
+.driver-wrapper.open > .driver {
+  background-color: #222;
+  border-left: 3px solid #0a84ff;
+}
+
 .driver {
   cursor: pointer;
   font-weight: bold;
