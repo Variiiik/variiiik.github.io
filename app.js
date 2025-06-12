@@ -63,7 +63,9 @@ async function toggleDetails(driver, wrapper) {
     const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}`);
     const detail = await res.json();
     driver.details = detail;
-
+    const statusIcon = driver.status === 1
+        ? '<i class="bi bi-check-circle-fill text-success"></i>'
+        : '<i class="bi bi-exclamation-circle-fill text-warning"></i>';
     const detailsEl = document.createElement('div');
     detailsEl.className = 'driverDetails';
     detailsEl.innerHTML = `
@@ -71,7 +73,8 @@ async function toggleDetails(driver, wrapper) {
       <div><strong>Meeskond:</strong> <span class="value">${detail.teamName || '—'}</span></div>
       <div><strong>Kvalifikatsioon:</strong> <span class="value">${detail.qualificationsBestResult || '—'} (max: ${detail.qualificationsHighestScore || 0})</span></div>
       <div><strong>Tandem:</strong> <span class="value">${detail.tandemsBestResult || '—'}</span></div>
-      <div><strong>Riik:</strong> <span class="value">${detail.countryCode || driver.nationality || '—'}</span></div>
+      <div><strong>Riik:</strong> <span class="value">${driver.nationality || '—'}</span></div>
+      <div><strong>Staatus:</strong> <span class="value">${statusIcon}</span></div>
     `;
 
     if (driver.times && driver.times.length > 0) {
