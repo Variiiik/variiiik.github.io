@@ -22,11 +22,23 @@ h1 {
   margin-bottom: 20px;
 }
 
+.btn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
 .btn-group {
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  margin-top: 10px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
 }
+
 
 
 .driver-wrapper {
