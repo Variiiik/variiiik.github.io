@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let drivers = [];
   let timerInterval = null;
   let startTime = null;
+  let selectedDriver = null;
 
   // Lae andmed
   async function loadDriversFromDB(classFilter = null) {
@@ -33,14 +34,37 @@ document.addEventListener('DOMContentLoaded', () => {
   
       const el = document.createElement('div');
       el.className = 'driver';
-      el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality || driver.countryCode})`;
-      el.addEventListener('click', () => toggleDetails(driver, wrapper));
-  
+      el.textContent = `${driver.nationality || driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality})`;
+      el.addEventListener('click', () => {
+      // valime valitud sõitja
+      selectedDriver = driver;
+      // tegevus detailvaate avamiseks jms
+      toggleDetails(driver, wrapper);
+      });
       wrapper.appendChild(el);
       driverList.appendChild(wrapper);
     });
   }
   
+  document.getElementById('stopBtn').addEventListener('click', async () => {
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  if (selectedDriver) {
+    const measured = parseFloat(document.getElementById('timerDisplay').textContent);
+    const note = prompt("Lisa märkus (valikuline):", "") || "";
+
+    await fetch(`${API_BASE}/api/drivers/${selectedDriver.competitorId}/time`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ time: measured, note })
+    });
+
+    // värskendame detailvaadet
+    loadDriversFromDB(selectedDriver.competitionClass);
+    // Saad vajadusel uuendada ka detailvaate koodi
+  }
+});
   async function toggleDetails(driver, wrapper) {
     // Eemalda teistelt detailid
     document.querySelectorAll('.driverDetails').forEach(el => el.remove());
