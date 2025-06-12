@@ -1,53 +1,72 @@
+* { box-sizing: border-box; }
 body {
-  font-family: Arial, sans-serif;
-  background-color: #111;
+  font-family: sans-serif;
+  background: #111;
   color: #eee;
-  padding: 20px;
   margin: 0;
+  padding: 10px;
 }
-
-h2 {
-  margin-top: 0;
+h2, h3 {
+  margin-bottom: 5px;
+  font-size: 1.2em;
 }
-
-select, button {
+input, button {
   font-size: 1em;
   padding: 10px;
-  margin: 5px 0;
-  width: 100%;
-  border-radius: 6px;
   border: none;
+  border-radius: 6px;
+  margin: 5px 0;
 }
-
-select {
-  background-color: #222;
+input {
+  width: 100%;
+  background: #222;
   color: #eee;
 }
-
 button {
-  background-color: #0a84ff;
+  background: #0a84ff;
   color: white;
-  cursor: pointer;
+  width: 100%;
 }
-
-button:hover {
-  background-color: #056fd4;
+.tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
 }
-
-#driverInfo {
-  margin-top: 15px;
+.tabs button {
+  flex: 1;
+  background: #333;
+}
+.tabs button.active {
+  background: #0a84ff;
+}
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}
+.driver {
+  background: #222;
   padding: 10px;
-  background-color: #222;
+  margin-bottom: 10px;
   border-radius: 8px;
 }
-
-#log {
-  margin-top: 20px;
-  font-size: 0.9em;
+.driver h3 {
+  margin: 0 0 5px 0;
+  font-size: 1em;
 }
-
+.log-entry {
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+.time {
+  color: #0f0;
+  font-weight: bold;
+}
+.note {
+  color: #ccc;
+}
 @media (min-width: 600px) {
-  select, button {
-    max-width: 400px;
-  }
+  body { padding: 20px; }
+  input, button { font-size: 1.1em; }
 }
