@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Sünkrooni – töötab POST-iga
   window.syncDrivers = async function (driverClass) {
     try {
-      const response = await fetch(`${API_BASE}/api/sync-drivers/${driverClass}`, {
+      const response = await fetch(`${API_BASE}/api/sync-driver/${driverClass}`, {
         method: 'POST'
       });
   
