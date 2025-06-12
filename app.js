@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Käivitamine
-  loadDriversFromDB();
+ // loadDriversFromDB();
 
   // Nupud (sünk)
   const syncProBtn = document.getElementById('syncPro');
