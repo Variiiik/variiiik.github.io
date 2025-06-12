@@ -78,6 +78,10 @@ h1, h2, h3 {
   border-left: 3px solid #333;
 }
 
+.value {
+  color: #00ff00; /* roheline */
+  font-weight: normal;
+}
 
 /* Vormid */
 form {
