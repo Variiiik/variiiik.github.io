@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm('Kas oled kindel, et soovid kõik ajad kustutada?')) return;
       
         try {
-          const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}/times`, {
+          await fetch(`${API_BASE}/api/drivers/${selectedDriverId}/times`, {
             method: 'DELETE'
           });
       
