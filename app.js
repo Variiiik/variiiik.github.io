@@ -6,12 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let startTime = null;
 
   // Lae andmed
-  async function loadDriversFromDB() {
+  async function loadDriversFromDB(classFilter = null) {
     try {
       const response = await fetch(`${API_BASE}/api/drivers`);
       const data = await response.json();
       if (Array.isArray(data)) {
-        drivers = data;
+        drivers = classFilter ? data.filter(d => d.competitionClass === classFilter) : data;
         render();
       } else {
         console.error('Vigane andmevorming:', data);
@@ -126,15 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Sünkrooni – töötab POST-iga
-  window.syncDrivers = async function (driverClass) {
+  window.syncDrivers = async function(driverClass) {
     try {
       const response = await fetch(`${API_BASE}/api/sync-driver/${driverClass}`, {
         method: 'POST'
       });
-  
       if (response.ok) {
         console.log(`${driverClass} sünkroonitud`);
-        await loadDriversFromDB();
+        await loadDriversFromDB(driverClass); // ← siit tuleb nüüd ainult see klass
       } else {
         console.error('Sünkroonimine ebaõnnestus');
       }
