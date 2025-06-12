@@ -5,6 +5,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let timerInterval = null;
   let startTime = null;
   let selectedDriverId = null;
+  
+function formatTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const centiseconds = Math.floor((ms % 1000) / 10);
+
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+}
 
   async function loadDriversFromDB(classFilter = null) {
     try {
@@ -68,10 +77,15 @@ document.addEventListener('DOMContentLoaded', () => {
         <div><strong>Riik:</strong> <span class="value">${detail.countryCode || driver.nationality || '—'}</span></div>
       `;
 
-      if (Array.isArray(detail.times)) {
-        detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">${detail.times.join(', ')}</span></div>`;
+      if (driver.details?.times && driver.details.times.length > 0) {
+        const timesHtml = driver.details.times
+          .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t)}</span></div>`)
+          .join('');
+        detailsEl.innerHTML += `<div><strong>Ajad:</strong></div>${timesHtml}`;
+      } else {
+        detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
       }
-
+      
       wrapper.appendChild(detailsEl);
     } catch (err) {
       console.error('Detailide laadimine ebaõnnestus:', err);
