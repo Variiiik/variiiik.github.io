@@ -126,45 +126,41 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('stopBtn').addEventListener('click', async () => {
-    if (!timerInterval) return;
-    clearInterval(timerInterval);
-    timerInterval = null;
+  if (!timerInterval) return;
+  clearInterval(timerInterval);
+  timerInterval = null;
 
-    const now = Date.now();
-    const diff = now - startTime;
+  const now = Date.now();
+  const diff = now - startTime;
 
-    document.getElementById('timerDisplay').textContent = formatTime(diff);
+  const minutes = Math.floor(diff / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+  const centiseconds = Math.floor((diff % 1000) / 10);
 
-    if (selectedDriverId) {
-      try {
-        const saveRes = await fetch(`${API_BASE}/api/drivers/${selectedDriverId}/time`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ time: timeInSeconds })
-        });
-  
-      if (saveRes.ok) {
-        // lae ainult see üks driver uuesti
-        const detailRes = await fetch(`${API_BASE}/api/drivers/${selectedDriverId}`);
-        const updatedDetail = await detailRes.json();
-  
-        const driver = drivers.find(d => d.competitorId === selectedDriverId);
-        if (driver) {
-          driver.details = updatedDetail;
-  
-          // leia wrapper ja uuenda vaadet
-          const openWrapper = document.querySelector('.driver-wrapper.open');
-          if (openWrapper) {
-            toggleDetails(driver, openWrapper);
-          }
-        }
+  const timeInSeconds = minutes * 60 + seconds + centiseconds / 100;
+
+  document.getElementById('timerDisplay').textContent =
+    `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+
+  if (selectedDriverId) {
+    try {
+      const res = await fetch(`${API_BASE}/api/drivers/${selectedDriverId}/time`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ time: timeInSeconds })
+      });
+
+      if (res.ok) {
+        await loadDriversFromDB(); // värskenda list
+      } else {
+        console.error('Aja salvestamine ebaõnnestus');
       }
     } catch (err) {
       console.error('Aja salvestamine ebaõnnestus:', err);
     }
   }
+});
 
-  });
 
   function updateTimer() {
     const now = Date.now();
