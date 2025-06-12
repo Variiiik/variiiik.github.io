@@ -114,19 +114,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (selectedDriverId) {
       try {
-        const res = await fetch(`${API_BASE}/api/drivers/${selectedDriverId}/time`, {
+        const saveRes = await fetch(`${API_BASE}/api/drivers/${selectedDriverId}/time`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ time: diff })
+          body: JSON.stringify({ time: timeInSeconds })
         });
-
-        if (res.ok) {
-          await loadDriversFromDB(activeClass); // värskenda list
+  
+      if (saveRes.ok) {
+        // lae ainult see üks driver uuesti
+        const detailRes = await fetch(`${API_BASE}/api/drivers/${selectedDriverId}`);
+        const updatedDetail = await detailRes.json();
+  
+        const driver = drivers.find(d => d.competitorId === selectedDriverId);
+        if (driver) {
+          driver.details = updatedDetail;
+  
+          // leia wrapper ja uuenda vaadet
+          const openWrapper = document.querySelector('.driver-wrapper.open');
+          if (openWrapper) {
+            toggleDetails(driver, openWrapper);
+          }
         }
-      } catch (err) {
-        console.error('Aja salvestamine ebaõnnestus:', err);
       }
+    } catch (err) {
+      console.error('Aja salvestamine ebaõnnestus:', err);
     }
+  }
+
   });
 
   function updateTimer() {
