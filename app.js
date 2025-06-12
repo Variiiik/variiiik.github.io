@@ -48,134 +48,176 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function toggleDetails(driver, wrapper) {
-    document.querySelectorAll('.driverDetails').forEach(el => el.remove());
+async function toggleDetails(driver, wrapper) {
+  document.querySelectorAll('.driverDetails').forEach(el => el.remove());
 
-    if (wrapper.classList.contains('open')) {
-      wrapper.classList.remove('open');
-      return;
+  if (wrapper.classList.contains('open')) {
+    wrapper.classList.remove('open');
+    return;
+  }
+
+  document.querySelectorAll('.driver-wrapper').forEach(w => w.classList.remove('open'));
+  wrapper.classList.add('open');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}`);
+    const detail = await res.json();
+    driver.details = detail;
+
+    const detailsEl = document.createElement('div');
+    detailsEl.className = 'driverDetails';
+    detailsEl.innerHTML = `
+      <div><strong>Auto:</strong> <span class="value">${detail.car || '—'}</span></div>
+      <div><strong>Meeskond:</strong> <span class="value">${detail.teamName || '—'}</span></div>
+      <div><strong>Kvalifikatsioon:</strong> <span class="value">${detail.qualificationsBestResult || '—'} (max: ${detail.qualificationsHighestScore || 0})</span></div>
+      <div><strong>Tandem:</strong> <span class="value">${detail.tandemsBestResult || '—'}</span></div>
+      <div><strong>Riik:</strong> <span class="value">${detail.countryCode || driver.nationality || '—'}</span></div>
+    `;
+
+    if (driver.times && driver.times.length > 0) {
+      const timesHtml = driver.times
+        .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t.time * 1000)}</span></div>`)
+        .join('');
+      detailsEl.innerHTML += `<div><strong>Ajad:</strong></div>${timesHtml}`;
+    } else {
+      detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
     }
 
-    document.querySelectorAll('.driver-wrapper').forEach(w => w.classList.remove('open'));
-    wrapper.classList.add('open');
-
-    try {
-      const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}`);
-      const detail = await res.json();
-      driver.details = detail;
-
-      const detailsEl = document.createElement('div');
-      detailsEl.className = 'driverDetails';
-      detailsEl.innerHTML = `
-        <div><strong>Auto:</strong> <span class="value">${detail.car || '—'}</span></div>
-        <div><strong>Meeskond:</strong> <span class="value">${detail.teamName || '—'}</span></div>
-        <div><strong>Kvalifikatsioon:</strong> <span class="value">${detail.qualificationsBestResult || '—'} (max: ${detail.qualificationsHighestScore || 0})</span></div>
-        <div><strong>Tandem:</strong> <span class="value">${detail.tandemsBestResult || '—'}</span></div>
-        <div><strong>Riik:</strong> <span class="value">${detail.countryCode || driver.nationality || '—'}</span></div>
-      `;
-
-      if (driver.times && driver.times.length > 0) {
-        const timesHtml = driver.times
-          .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t.time * 1000)}</span></div>`)
-          .join('');
-        detailsEl.innerHTML += `<div><strong>Ajad:</strong></div>${timesHtml}`;
-      } else {
-        detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Kustuta ajad';
+    deleteBtn.className = 'btn btn-danger btn-sm mt-2';
+    deleteBtn.addEventListener('click', async () => {
+      if (!confirm('Kas oled kindel, et soovid kõik ajad kustutada?')) return;
+      try {
+        await fetch(`${API_BASE}/api/drivers/${driver.competitorId}/times`, {
+          method: 'DELETE'
+        });
+        console.log('Ajad kustutatud');
+        await loadDriversFromDB(); // värskenda nimekiri
+      } catch (err) {
+        console.error('Viga kustutamisel:', err);
       }
+    });
 
-      const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = 'Kustuta ajad';
-      deleteBtn.style.marginTop = '10px';
-      deleteBtn.className = 'btn btn-danger btn-sm';
-      deleteBtn.addEventListener('click', async () => {
-        if (!confirm('Kas oled kindel, et soovid kõik ajad kustutada?')) return;
+    // ⏱ Taimer
+    const timerEl = document.createElement('div');
+    timerEl.className = 'timer mt-2';
+    timerEl.textContent = '00:00.00';
 
-        try {
-          await fetch(`${API_BASE}/api/drivers/${selectedDriverId}/times`, {
-            method: 'DELETE'
-          });
+    const startBtn = document.createElement('button');
+    startBtn.textContent = 'Start';
+    startBtn.className = 'btn btn-success btn-sm me-2 mt-2';
 
-          //await loadDriversFromDB(); // Värskenda list
-        } catch (err) {
-          console.error('Viga kustutamisel:', err);
-        }
-      });
+    const stopBtn = document.createElement('button');
+    stopBtn.textContent = 'Stop';
+    stopBtn.className = 'btn btn-warning btn-sm mt-2';
+    stopBtn.disabled = true;
 
-      detailsEl.appendChild(deleteBtn);
+    let localStart = null;
+    let localTimer = null;
 
-      // ⏱ Taimer + nupud
-      const timerEl = document.createElement('div');
-      timerEl.className = 'timer mt-2';
-      timerEl.textContent = '00:00.00';
+    function format(ms) {
+      const min = Math.floor(ms / 60000);
+      const sec = Math.floor((ms % 60000) / 1000);
+      const cs = Math.floor((ms % 1000) / 10);
+      return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+    }
 
-      const startBtn = document.createElement('button');
-      startBtn.textContent = 'Start';
-      startBtn.className = 'btn btn-success btn-sm me-2 mt-2';
+    startBtn.addEventListener('click', () => {
+      localStart = Date.now();
+      localTimer = setInterval(() => {
+        timerEl.textContent = format(Date.now() - localStart);
+      }, 50);
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    });
 
-      const stopBtn = document.createElement('button');
-      stopBtn.textContent = 'Stop';
-      stopBtn.className = 'btn btn-warning btn-sm mt-2';
+    stopBtn.addEventListener('click', async () => {
+      clearInterval(localTimer);
+      const final = Date.now() - localStart;
+      timerEl.textContent = format(final);
+      startBtn.disabled = false;
       stopBtn.disabled = true;
 
-      let localStart = null;
-      let localTimer = null;
+      const seconds = Math.floor(final / 1000);
+      const centis = Math.floor((final % 1000) / 10);
+      const totalSeconds = seconds + centis / 100;
 
-      function format(ms) {
-        const min = Math.floor(ms / 60000);
-        const sec = Math.floor((ms % 60000) / 1000);
-        const cs = Math.floor((ms % 1000) / 10);
-        return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+      try {
+        const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}/time`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ time: totalSeconds })
+        });
+
+        if (res.ok) {
+          console.log('Aeg salvestatud');
+          const newTimeEl = document.createElement('div');
+          newTimeEl.innerHTML = `<strong>Katse:</strong> <span class="value">${format(final)}</span>`;
+          detailsEl.appendChild(newTimeEl);
+        } else {
+          console.error('Salvestamine ebaõnnestus');
+        }
+      } catch (err) {
+        console.error('Võrguviga:', err);
       }
+    });
 
-      startBtn.addEventListener('click', () => {
-        localStart = Date.now();
-        localTimer = setInterval(() => {
-          timerEl.textContent = format(Date.now() - localStart);
-        }, 50);
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
-      });
+    // 📝 Märkus automaatse salvestusega
+    const noteLabel = document.createElement('label');
+    noteLabel.textContent = 'Märkus:';
+    noteLabel.className = 'mt-3';
 
-      stopBtn.addEventListener('click', async () => {
-        clearInterval(localTimer);
-        const final = Date.now() - localStart;
-        timerEl.textContent = format(final);
-        startBtn.disabled = false;
-        stopBtn.disabled = true;
+    const noteTextarea = document.createElement('textarea');
+    noteTextarea.className = 'form-control mb-2';
+    noteTextarea.rows = 2;
+    noteTextarea.value = driver.note || '';
+    noteTextarea.placeholder = 'Sisesta märkus...';
 
-        const seconds = Math.floor(final / 1000);
-        const centis = Math.floor((final % 1000) / 10);
-        const totalSeconds = seconds + centis / 100;
+    const saveStatus = document.createElement('div');
+    saveStatus.className = 'text-success small mb-2';
+    saveStatus.style.display = 'none';
+    saveStatus.textContent = '💾 Salvestatud';
 
+    let noteTimer = null;
+
+    noteTextarea.addEventListener('input', () => {
+      if (noteTimer) clearTimeout(noteTimer);
+      noteTimer = setTimeout(async () => {
         try {
-          const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}/time`, {
-            method: 'POST',
+          const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}/note`, {
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ time: totalSeconds })
+            body: JSON.stringify({ note: noteTextarea.value.trim() })
           });
-
           if (res.ok) {
-            console.log('Aeg salvestatud');
-            const newTimeEl = document.createElement('div');
-            newTimeEl.innerHTML = `<strong>Katse:</strong> <span class="value">${format(final)}</span>`;
-            detailsEl.appendChild(newTimeEl);
-            //await loadDriversFromDB(); // värskenda
+            saveStatus.style.display = 'block';
+            setTimeout(() => {
+              saveStatus.style.display = 'none';
+            }, 2000);
           } else {
-            console.error('Salvestamine ebaõnnestus');
+            console.error('Märkuse salvestamine ebaõnnestus');
           }
         } catch (err) {
-          console.error('Võrguviga:', err);
+          console.error('Võrguviga märkuse salvestamisel:', err);
         }
-      });
+      }, 1000);
+    });
 
-      detailsEl.appendChild(timerEl);
-      detailsEl.appendChild(startBtn);
-      detailsEl.appendChild(stopBtn);
+    // ➕ Lisame kõik detailid elemendile
+    detailsEl.appendChild(deleteBtn);
+    detailsEl.appendChild(timerEl);
+    detailsEl.appendChild(startBtn);
+    detailsEl.appendChild(stopBtn);
+    detailsEl.appendChild(noteLabel);
+    detailsEl.appendChild(noteTextarea);
+    detailsEl.appendChild(saveStatus);
 
-      wrapper.appendChild(detailsEl);
-    } catch (err) {
-      console.error('Detailide laadimine ebaõnnestus:', err);
-    }
+    wrapper.appendChild(detailsEl);
+  } catch (err) {
+    console.error('Detailide laadimine ebaõnnestus:', err);
+  }
+}
   }
 
   const syncProBtn = document.getElementById('syncPro');
