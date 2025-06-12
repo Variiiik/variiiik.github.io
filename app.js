@@ -63,13 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
   
       const detailsEl = document.createElement('div');
       detailsEl.className = 'driverDetails';
-      detailsEl.innerHTML = `
-        <div><strong>Auto:</strong> ${details.car || '—'}</div>
-        <div><strong>Meeskond:</strong> ${details.teamName || '—'}</div>
-        <div><strong>Kvalifikatsioon:</strong> ${details.qualificationsBestResult || '—'} (max: ${details.qualificationsHighestScore || 0})</div>
-        <div><strong>Tandem:</strong> ${details.tandemsBestResult || '—'}</div>
-        <div><strong>Riik:</strong> ${details.countryCode || driver.nationality || '—'}</div>
+      details.innerHTML = `
+        <div><strong>Auto:</strong> <span class="value">${driver.details?.car || '—'}</span></div>
+        <div><strong>Meeskond:</strong> <span class="value">${driver.details?.teamName || '—'}</span></div>
+        <div><strong>Kvalifikatsioon:</strong> <span class="value">${driver.details?.qualificationsBestResult || '—'} (max: ${driver.details?.qualificationsHighestScore || 0})</span></div>
+        <div><strong>Tandem:</strong> <span class="value">${driver.details?.tandemsBestResult || '—'}</span></div>
+        <div><strong>Riik:</strong> <span class="value">${driver.details?.countryCode || driver.nationality || '—'}</span></div>
       `;
+
   
       wrapper.appendChild(detailsEl);
     } catch (err) {
