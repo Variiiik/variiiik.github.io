@@ -79,15 +79,14 @@
       document.querySelectorAll('.tab-content').forEach(tab => {
         tab.style.display = 'none';
       });
-      document.getElementById(tabId).style.display = 'block';
-
-      document.querySelectorAll('.nav-link').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      const index = tabId === 'timerTab' ? 0 : 1;
-      document.querySelectorAll('.nav-link')[index].classList.add('active');
-      document.addEventListener('DOMContentLoaded', () => openTab('timerTab'));
+      const el = document.getElementById(tabId);
+      if (el) el.style.display = 'block';
     }
+  
+    // Avab taimeri vaate automaatselt
+    document.addEventListener('DOMContentLoaded', () => {
+      openTab('timerTab');
+    });
   </script>
 </body>
 </html>
