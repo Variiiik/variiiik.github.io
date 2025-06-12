@@ -23,27 +23,21 @@
     <div style="margin-top: 10px;">
       <button id="syncPro">Pro</button>
       <button id="syncPro2">Pro2</button>
-    </div>
+  </div>
 
     <h3>Sõitjad</h3>
     <div id="driverList" class="driver-list"></div>
-
-  <div id="addTab" class="tab-content" style="display: none;">
-    <h2>Lisa uus sõitja</h2>
-    <form id="addDriverForm">
-      <label for="nameInput">Nimi:</label>
-      <input type="text" id="nameInput" required>
-
-      <label for="numberInput">Stardinumber:</label>
-      <input type="number" id="numberInput" required>
-
-      <label for="nationalityInput">Rahvus (EE/LV/LT/...):</label>
-      <input type="text" id="nationalityInput" required>
-
-      <button type="submit">Lisa</button>
-    </form>
-  </div>
-
+    <div id="driverDetails" class="driver-details" style="display:none;">Add commentMore actions
+          <h3>Detailvaade</h3>
+          <p><strong>Nimi:</strong> <span id="detailName"></span></p>
+          <p><strong>Auto:</strong> <span id="detailCar"></span></p>
+          <p><strong>Tiim:</strong> <span id="detailTeam"></span></p>
+          <p><strong>Kvalifikatsioon:</strong> <span id="detailQual"></span></p>
+          <p><strong>Tandemid:</strong> <span id="detailTandem"></span></p>
+          <p><strong>Riik:</strong> <span id="detailCountry"></span></p>
+        </div>
+      </div>
+  
   <script src="app.js"></script>
   <script>
     function openTab(tabId) {
