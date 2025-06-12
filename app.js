@@ -1,100 +1,91 @@
 let drivers = [];
+let timerInterval = null;
+let startTime = null;
 
-// Lae kõik sõitjad serverist
+// Lae andmebaasist sõitjad
 async function loadDriversFromDB() {
-  const res = await fetch('/api/drivers');
-  const data = await res.json();
+  try {
+    const res = await fetch('/api/drivers');
+    const data = await res.json();
 
-  drivers = data; // ← see on nüüd korrektne
-  render();
-}
-
-// Lisa uus sõitja
-async function addDriver() {
-  const name = document.getElementById("driverName").value.trim();
-  if (!name) return;
-
-  await fetch('https://spotter-backend-asvo.onrender.com/api/drivers', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name })
-  });
-
-  await loadDriversFromDB();
-  document.getElementById("driverName").value = "";
-}
-
-// Start/Stop taimer
-async function toggleTimer(index) {
-  const d = drivers[index];
-  if (!d.running) {
-    d.startTime = Date.now();
-    d.running = true;
-  } else {
-    const elapsed = (Date.now() - d.startTime) / 1000;
-    let note = prompt("Lisa märkus (valikuline):", "");
-    if (note === null) note = "";
-    d.times.push({ time: elapsed.toFixed(2), note });
-    d.running = false;
-    d.startTime = null;
-
-    await fetch(`https://spotter-backend-asvo.onrender.com/api/drivers/${encodeURIComponent(d.name)}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ times: d.times, running: d.running, startTime: d.startTime })
-    });
+    drivers = data; // Kuna API tagastab massiivi
+    render();
+  } catch (err) {
+    console.error('Andmete laadimine ebaõnnestus:', err);
   }
-  render();
 }
 
-// UI renderdamine
+// Kujunda sõitjate nimekiri
 function render() {
   const driverList = document.getElementById('driverList');
   driverList.innerHTML = '';
 
   drivers.forEach(driver => {
     const el = document.createElement('div');
+    el.className = 'driver';
     el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality})`;
     driverList.appendChild(el);
   });
 }
 
-// Analüüsi tab
-function renderAnalysis() {
-  const a = document.getElementById("analysis");
-  a.innerHTML = "";
-
-  let globalBest = null;
-
-  drivers.forEach((d) => {
-    if (!d.times || d.times.length === 0) return;
-    const times = d.times.map(t => parseFloat(t.time));
-    const avg = (times.reduce((a, b) => a + b, 0) / times.length).toFixed(2);
-    const best = Math.min(...times).toFixed(2);
-
-    if (!globalBest || best < globalBest.time) {
-      globalBest = { name: d.name, time: best };
-    }
-
-    const div = document.createElement("div");
-    div.innerHTML = `<strong>${d.name}</strong><br>Parim aeg: <span class="time">${best}s</span>, Keskmine: <span class="time">${avg}s</span><br><br>`;
-    a.appendChild(div);
-  });
-
-  if (globalBest) {
-    const globalDiv = document.createElement("div");
-    globalDiv.innerHTML = `<hr><strong>Kõige kiirem:</strong> <span class="time">${globalBest.time}s</span> – ${globalBest.name}`;
-    a.appendChild(globalDiv);
+// Start/Stop nupud
+document.getElementById('startBtn').addEventListener('click', () => {
+  if (!timerInterval) {
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 100);
   }
+});
+
+document.getElementById('stopBtn').addEventListener('click', () => {
+  clearInterval(timerInterval);
+  timerInterval = null;
+});
+
+function updateTimer() {
+  const now = Date.now();
+  const diff = now - startTime;
+
+  const seconds = Math.floor(diff / 1000);
+  const milliseconds = diff % 1000;
+
+  document.getElementById('timerDisplay').textContent =
+    `${seconds}.${milliseconds.toString().padStart(3, '0')} s`;
 }
 
-// Tabide vahetamine
-function switchTab(tab) {
-  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
-  document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
-  document.getElementById(tab).classList.add("active");
-  event.target.classList.add("active");
-}
+// Sõitja lisamine
+document.getElementById('addDriverForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-// Lae kõik andmed alguses
-window.onload = loadDriversFromDB;
+  const name = document.getElementById('nameInput').value;
+  const number = document.getElementById('numberInput').value;
+  const nationality = document.getElementById('nationalityInput').value;
+
+  const newDriver = {
+    competitorName: name,
+    competitionNumbers: number,
+    mostCommonNr: parseInt(number),
+    nationality: nationality,
+    competitionClass: 'Pro',
+    status: 1
+  };
+
+  try {
+    const res = await fetch('/api/drivers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newDriver)
+    });
+
+    if (res.ok) {
+      await loadDriversFromDB();
+      document.getElementById('addDriverForm').reset();
+    } else {
+      console.error('Lisamine ebaõnnestus');
+    }
+  } catch (err) {
+    console.error('Viga lisamisel:', err);
+  }
+});
+
+// Lae alguses
+loadDriversFromDB();
