@@ -83,16 +83,31 @@
   <script src="app.js"></script>
   <script>
   // Lihtne openTab, mis töötab koos app.js funktsiooniga
-  function openTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(tab => {
-      tab.style.display = 'none';
-    });
-    const el = document.getElementById(tabId);
-    if (el) el.style.display = 'block';
-    if (tabId === 'analyse' && typeof loadAnalysis === 'function') {
-      loadAnalysis(); // ⬅️ Lisa see rida
-    }
+function openTab(tabId) {
+  // Peida kõik tabid
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.style.display = 'none';
+  });
+
+  // Eemalda 'active' klass kõigilt nuppudelt
+  document.querySelectorAll('#tabNav .nav-link').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  // Näita valitud tab
+  const el = document.getElementById(tabId);
+  if (el) el.style.display = 'block';
+
+  // Lisa 'active' klass sellele nupule, mis tabId avas
+  const tabButton = document.querySelector(`#tabNav .nav-link[onclick*="${tabId}"]`);
+  if (tabButton) tabButton.classList.add('active');
+
+  // Lae analüüsi andmed, kui avati analyse tab
+  if (tabId === 'analyse') {
+    loadAnalysis();
   }
+}
+
 
   document.addEventListener('DOMContentLoaded', () => {
     openTab('timerTab');
