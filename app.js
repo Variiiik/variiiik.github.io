@@ -1,27 +1,22 @@
 let drivers = [];
-let timerInterval = null;
-let startTime = null;
 
-// Lae andmebaasist sõitjad
 async function loadDriversFromDB() {
   try {
     const response = await fetch('https://spotter-backend-asvo.onrender.com/api/drivers');
-    const data = await response.json();
-
-    if (Array.isArray(data)) {
-      render(data);
-    } else {
-      console.error('Saadud andmed ei ole massiiv:', data);
-    }
+    if (!response.ok) throw new Error('Viga API päringus');
+    drivers = await response.json();
+    render();
   } catch (error) {
-    console.error('Viga sõitjate laadimisel:', error);
+    console.error('Laadimine ebaõnnestus:', error);
   }
 }
 
-
-// Kujunda sõitjate nimekiri
 function render() {
   const driverList = document.getElementById('driverList');
+  if (!driverList) {
+    console.warn('Elementi #driverList ei leitud');
+    return;
+  }
   driverList.innerHTML = '';
 
   drivers.forEach(driver => {
@@ -32,64 +27,39 @@ function render() {
   });
 }
 
-// Start/Stop nupud
-document.getElementById('startBtn').addEventListener('click', () => {
-  if (!timerInterval) {
-    startTime = Date.now();
-    timerInterval = setInterval(updateTimer, 100);
-  }
-});
-
-document.getElementById('stopBtn').addEventListener('click', () => {
-  clearInterval(timerInterval);
-  timerInterval = null;
-});
-
-function updateTimer() {
-  const now = Date.now();
-  const diff = now - startTime;
-
-  const seconds = Math.floor(diff / 1000);
-  const milliseconds = diff % 1000;
-
-  document.getElementById('timerDisplay').textContent =
-    `${seconds}.${milliseconds.toString().padStart(3, '0')} s`;
+function showTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.style.display = 'none';
+  });
+  document.getElementById(tabId).style.display = 'block';
 }
 
-// Sõitja lisamine
-document.getElementById('addDriverForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
+// Formi submit sõitja lisamiseks (näidis)
+document.addEventListener('DOMContentLoaded', () => {
+  loadDriversFromDB();
 
-  const name = document.getElementById('nameInput').value;
-  const number = document.getElementById('numberInput').value;
-  const nationality = document.getElementById('nationalityInput').value;
+  const form = document.getElementById('driverForm');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.status = 1;
+      data.competitionClass = "Pro";
 
-  const newDriver = {
-    competitorName: name,
-    competitionNumbers: number,
-    mostCommonNr: parseInt(number),
-    nationality: nationality,
-    competitionClass: 'Pro',
-    status: 1
-  };
+      try {
+        const res = await fetch('https://spotter-backend-asvo.onrender.com/api/drivers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
 
-  try {
-    const res = await fetch('/api/drivers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newDriver)
+        if (!res.ok) throw new Error('Lisamine ebaõnnestus');
+        form.reset();
+        await loadDriversFromDB();
+        showTab('spotter-tab');
+      } catch (err) {
+        console.error('Viga lisamisel:', err);
+      }
     });
-
-    if (res.ok) {
-      await loadDriversFromDB();
-      document.getElementById('addDriverForm').reset();
-    } else {
-      console.error('Lisamine ebaõnnestus');
-    }
-  } catch (err) {
-    console.error('Viga lisamisel:', err);
   }
 });
-
-// Lae alguses
-loadDriversFromDB();
