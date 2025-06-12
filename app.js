@@ -1,70 +1,90 @@
-const API_URL = "https://spotter-backend-asvo.onrender.com/api"; // Asenda vajadusel oma backendiga
-let drivers = [];
-let activeDriverId = null;
-let startTime = null;
+let drivers = JSON.parse(localStorage.getItem("drivers") || "[]");
 
-const driverSelect = document.getElementById("driverSelect");
-const driverInfo = document.getElementById("driverInfo");
-const log = document.getElementById("log");
+function save() {
+  localStorage.setItem("drivers", JSON.stringify(drivers));
+}
 
-// Lae võistlejad
-fetch(`${API_URL}/drivers`)
-  .then(res => res.json())
-  .then(data => {
-    drivers = data;
-    driverSelect.innerHTML = "";
-    data.forEach(driver => {
-      const option = document.createElement("option");
-      option.value = driver._id;
-      option.textContent = `${driver.competitionNumbers} – ${driver.competitorName}`;
-      driverSelect.appendChild(option);
+function addDriver() {
+  const name = document.getElementById("driverName").value.trim();
+  if (!name) return;
+  drivers.push({ name, times: [], running: false, startTime: null });
+  save();
+  render();
+  document.getElementById("driverName").value = "";
+}
+
+function toggleTimer(index) {
+  const d = drivers[index];
+  if (!d.running) {
+    d.startTime = Date.now();
+    d.running = true;
+  } else {
+    const elapsed = (Date.now() - d.startTime) / 1000;
+    let note = prompt("Lisa märkus (valikuline):", "");
+    if (note === null) note = "";
+    d.times.push({ time: elapsed.toFixed(2), note });
+    d.running = false;
+    d.startTime = null;
+  }
+  save();
+  render();
+}
+
+function render() {
+  const container = document.getElementById("drivers");
+  container.innerHTML = "";
+  drivers.forEach((d, i) => {
+    const box = document.createElement("div");
+    box.className = "driver";
+    const title = document.createElement("h3");
+    title.textContent = d.name;
+    box.appendChild(title);
+    const btn = document.createElement("button");
+    btn.textContent = d.running ? "Stop" : "Start";
+    btn.onclick = () => toggleTimer(i);
+    box.appendChild(btn);
+    d.times.forEach((t, j) => {
+      const e = document.createElement("div");
+      e.className = "log-entry";
+      e.innerHTML = `#${j + 1} <span class="time">${t.time}s</span> – <span class="note">${t.note}</span>`;
+      box.appendChild(e);
     });
-    updateDriverInfo();
+    container.appendChild(box);
+  });
+  renderAnalysis();
+}
+
+function renderAnalysis() {
+  const a = document.getElementById("analysis");
+  a.innerHTML = "";
+
+  let globalBest = null;
+
+  drivers.forEach((d) => {
+    if (d.times.length === 0) return;
+    const times = d.times.map(t => parseFloat(t.time));
+    const avg = (times.reduce((a, b) => a + b, 0) / times.length).toFixed(2);
+    const best = Math.min(...times).toFixed(2);
+    if (!globalBest || best < globalBest.time) {
+      globalBest = { name: d.name, time: best };
+    }
+    const div = document.createElement("div");
+    div.innerHTML = `<strong>${d.name}</strong><br>Parim aeg: <span class="time">${best}s</span>, Keskmine: <span class="time">${avg}s</span><br><br>`;
+    a.appendChild(div);
   });
 
-driverSelect.addEventListener("change", updateDriverInfo);
-
-function updateDriverInfo() {
-  const selectedId = driverSelect.value;
-  const driver = drivers.find(d => d._id === selectedId);
-  activeDriverId = selectedId;
-  if (!driver) return;
-  driverInfo.innerHTML = `
-    <p><strong>${driver.competitorName}</strong> (${driver.nationality})</p>
-    <p>Auto: ${driver.car || '–'}</p>
-    <p>Vanus: ${driver.age || '–'} | Meeskond: ${driver.teamName || '–'}</p>
-    <p>Parim kvalifikatsioon: ${driver.qualificationsBestResult || '–'} (${driver.qualificationsHighestScore || 0}p)</p>
-  `;
+  if (globalBest) {
+    const globalDiv = document.createElement("div");
+    globalDiv.innerHTML = `<hr><strong>Kõige kiirem:</strong> <span class="time">${globalBest.time}s</span> – ${globalBest.name}`;
+    a.appendChild(globalDiv);
+  }
 }
 
-function startTiming() {
-  if (!activeDriverId) return;
-  startTime = Date.now();
-  logMessage("Taimer käivitatud...");
+function switchTab(tab, event) {
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+  document.getElementById(tab).classList.add("active");
+  event.target.classList.add("active");
 }
 
-function stopTiming() {
-  if (!activeDriverId || !startTime) return;
-  const endTime = Date.now();
-  const seconds = ((endTime - startTime) / 1000).toFixed(2);
-  const note = prompt("Lisa märkus (valikuline):", "");
-
-  fetch(`${API_URL}/drivers/${activeDriverId}/times`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ time: seconds, note })
-  })
-    .then(res => res.json())
-    .then(() => {
-      logMessage(`⏱️ ${seconds}s salvestatud${note ? ` – ${note}` : ''}`);
-    })
-    .catch(() => logMessage("❌ Viga salvestamisel"));
-
-  startTime = null;
-}
-
-function logMessage(msg) {
-  const p = document.createElement("p");
-  p.textContent = msg;
-  log.prepend(p);
-}
+window.onload = render;
