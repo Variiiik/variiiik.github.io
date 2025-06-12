@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let timerInterval = null;
   let startTime = null;
   let selectedDriverId = null;
+  let activeClass = 'Pro';
 
   function formatTime(ms) {
     const totalSeconds = Math.floor(ms / 1000);
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadDriversFromDB(classFilter = null) {
+    if (classFilter) activeClass = classFilter;
     try {
       const response = await fetch(`${API_BASE}/api/drivers`);
       const data = await response.json();
@@ -119,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (res.ok) {
-          //await loadDriversFromDB(); // värskenda list
+          await loadDriversFromDB(activeClass); // värskenda list
         }
       } catch (err) {
         console.error('Aja salvestamine ebaõnnestus:', err);
