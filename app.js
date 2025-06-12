@@ -9,7 +9,8 @@ async function loadDriversFromDB() {
     const data = await response.json();
 
     if (Array.isArray(data)) {
-      render(data);
+      drivers = data;         // ⬅️ Parandus siia
+      render();
     } else {
       console.error('Saadud andmed ei ole massiiv:', data);
     }
