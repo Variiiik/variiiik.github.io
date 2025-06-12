@@ -4,7 +4,8 @@ let timerInterval = null;
 let startTime = null;
 
 const API_BASE = 'https://spotter-backend-asvo.onrender.com';
-
+document.getElementById('syncPro').addEventListener('click', () => syncDrivers('Pro'));
+document.getElementById('syncPro2').addEventListener('click', () => syncDrivers('Pro2'));
 // Lae andmed
 async function loadDriversFromDB() {
   try {
@@ -122,7 +123,6 @@ window.syncDrivers = async function(driverClass) {
 
 // Lae esmasel avamisel
 loadDriversFromDB();
-document.getElementById('syncPro').addEventListener('click', () => syncDrivers('Pro'));
-document.getElementById('syncPro2').addEventListener('click', () => syncDrivers('Pro2'));
-  });
+
+});
 
