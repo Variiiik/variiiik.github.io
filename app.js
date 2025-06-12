@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const el = document.createElement('div');
       el.className = 'driver';
-      el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality || driver.countryCode})`;
+      el.textContent = `${driver.nationality || driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality})`;
 
       el.addEventListener('click', () => {
         toggleDetails(driver, wrapper);
