@@ -4,9 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let drivers = [];
   let timerInterval = null;
   let startTime = null;
-  let selectedDriver = null;
+  let selectedDriverId = null;
 
-  // Lae andmed
   async function loadDriversFromDB(classFilter = null) {
     try {
       const response = await fetch(`${API_BASE}/api/drivers`);
@@ -22,94 +21,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Kuvamine
-    function render() {
+  async function render() {
     const driverList = document.getElementById('driverList');
     if (!driverList) return;
     driverList.innerHTML = '';
-  
-    drivers.forEach(driver => {
+
+    for (const driver of drivers) {
       const wrapper = document.createElement('div');
       wrapper.className = 'driver-wrapper';
-  
+
       const el = document.createElement('div');
       el.className = 'driver';
-      const country = driver.nationality || '--';
-      const number = driver.competitionNumbers || '??';
-      const name = driver.competitorName || 'Nimi puudub';
-      el.textContent = `${country}${number} ${name}`;
-      el.addEventListener('click', () => {
-      // valime valitud sõitja
-      selectedDriver = driver;
-      // tegevus detailvaate avamiseks jms
-      toggleDetails(driver, wrapper);
-      });
+      el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality || driver.countryCode})`;
+      el.addEventListener('click', () => toggleDetails(driver, wrapper));
+
       wrapper.appendChild(el);
       driverList.appendChild(wrapper);
-    });
+    }
   }
-  
-  document.getElementById('stopBtn').addEventListener('click', async () => {
-  clearInterval(timerInterval);
-  timerInterval = null;
 
-  if (selectedDriver) {
-    const measured = parseFloat(document.getElementById('timerDisplay').textContent);
-    const note = prompt("Lisa märkus (valikuline):", "") || "";
-
-    await fetch(`${API_BASE}/api/drivers/${selectedDriver.competitorId}/time`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ time: measured, note })
-    });
-
-    // värskendame detailvaadet
-    loadDriversFromDB(selectedDriver.competitionClass);
-    // Saad vajadusel uuendada ka detailvaate koodi
-  }
-});
   async function toggleDetails(driver, wrapper) {
-    // Eemalda teistelt detailid
+    // Eemalda teised detailid
     document.querySelectorAll('.driverDetails').forEach(el => el.remove());
-  
-    // Kui juba avatud, sulge
+
     if (wrapper.classList.contains('open')) {
       wrapper.classList.remove('open');
       return;
     }
-  
-    // Sulge teised
+
     document.querySelectorAll('.driver-wrapper').forEach(w => w.classList.remove('open'));
     wrapper.classList.add('open');
-  
-    // Lae detailid API kaudu
+    selectedDriverId = driver.competitorId;
+
     try {
       const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}`);
-      if (!res.ok) throw new Error('Andmeid ei leitud');
-      const details = await res.json();
-  
+      const detail = await res.json();
+      driver.details = detail;
+
       const detailsEl = document.createElement('div');
       detailsEl.className = 'driverDetails';
       detailsEl.innerHTML = `
-        <div><strong>Auto:</strong> <span class="value">${driver.details?.car || '—'}</span></div>
-        <div><strong>Meeskond:</strong> <span class="value">${driver.details?.teamName || '—'}</span></div>
-        <div><strong>Kvalifikatsioon:</strong> <span class="value">${driver.details?.qualificationsBestResult || '—'} (max: ${driver.details?.qualificationsHighestScore || 0})</span></div>
-        <div><strong>Tandem:</strong> <span class="value">${driver.details?.tandemsBestResult || '—'}</span></div>
-        <div><strong>Riik:</strong> <span class="value">${driver.details?.countryCode || driver.nationality || '—'}</span></div>
+        <div><strong>Auto:</strong> <span class="value">${detail.car || '—'}</span></div>
+        <div><strong>Meeskond:</strong> <span class="value">${detail.teamName || '—'}</span></div>
+        <div><strong>Kvalifikatsioon:</strong> <span class="value">${detail.qualificationsBestResult || '—'} (max: ${detail.qualificationsHighestScore || 0})</span></div>
+        <div><strong>Tandem:</strong> <span class="value">${detail.tandemsBestResult || '—'}</span></div>
+        <div><strong>Riik:</strong> <span class="value">${detail.countryCode || driver.nationality || '—'}</span></div>
       `;
-      if (driver.details?.times?.length) {
-        detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">${driver.details.times.join(', ')}</span></div>`;
+
+      if (Array.isArray(detail.times)) {
+        detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">${detail.times.join(', ')}</span></div>`;
       }
 
-  
       wrapper.appendChild(detailsEl);
     } catch (err) {
       console.error('Detailide laadimine ebaõnnestus:', err);
     }
   }
 
-
-  // Start/Stop taimer
+  // Taimeri start/stop
   document.getElementById('startBtn').addEventListener('click', () => {
     if (!timerInterval) {
       startTime = Date.now();
@@ -117,9 +86,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.getElementById('stopBtn').addEventListener('click', () => {
+  document.getElementById('stopBtn').addEventListener('click', async () => {
+    if (!timerInterval) return;
     clearInterval(timerInterval);
     timerInterval = null;
+
+    const now = Date.now();
+    const diff = now - startTime;
+    const seconds = Math.floor(diff / 1000);
+    const milliseconds = diff % 1000;
+    const timeInSeconds = parseFloat(`${seconds}.${milliseconds.toString().padStart(3, '0')}`);
+
+    document.getElementById('timerDisplay').textContent = `${timeInSeconds} s`;
+
+    if (selectedDriverId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/drivers/${selectedDriverId}/time`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ time: timeInSeconds })
+        });
+
+        if (res.ok) {
+          await loadDriversFromDB(); // värskenda ka list
+        }
+      } catch (err) {
+        console.error('Aja salvestamine ebaõnnestus:', err);
+      }
+    }
   });
 
   function updateTimer() {
@@ -130,32 +124,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('timerDisplay').textContent =
       `${seconds}.${milliseconds.toString().padStart(3, '0')} s`;
   }
-  
 
-  // Sünkrooni – töötab POST-iga
-  window.syncDrivers = async function(driverClass) {
+  // Sünkroniseerimisnupud
+  const syncProBtn = document.getElementById('syncPro');
+  const syncPro2Btn = document.getElementById('syncPro2');
+
+  if (syncProBtn) syncProBtn.addEventListener('click', () => syncDrivers('Pro'));
+  if (syncPro2Btn) syncPro2Btn.addEventListener('click', () => syncDrivers('Pro2'));
+
+  async function syncDrivers(driverClass) {
     try {
       const response = await fetch(`${API_BASE}/api/sync-driver/${driverClass}`, {
         method: 'POST'
       });
       if (response.ok) {
         console.log(`${driverClass} sünkroonitud`);
-        await loadDriversFromDB(driverClass); // ← siit tuleb nüüd ainult see klass
+        await loadDriversFromDB(driverClass);
       } else {
         console.error('Sünkroonimine ebaõnnestus');
       }
     } catch (err) {
       console.error('Sünkroonimisviga:', err);
     }
-  };
+  }
 
-  // Käivitamine
- // loadDriversFromDB();
-
-  // Nupud (sünk)
-  const syncProBtn = document.getElementById('syncPro');
-  const syncPro2Btn = document.getElementById('syncPro2');
-
-  if (syncProBtn) syncProBtn.addEventListener('click', () => syncDrivers('Pro'));
-  if (syncPro2Btn) syncPro2Btn.addEventListener('click', () => syncDrivers('Pro2'));
+  // Alustuseks lae Pro klass
+  loadDriversFromDB('Pro');
 });
