@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'DELETE'
           });
 
-          await loadDriversFromDB(); // Värskenda list
+          //await loadDriversFromDB(); // Värskenda list
         } catch (err) {
           console.error('Viga kustutamisel:', err);
         }
@@ -162,7 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (res.ok) {
             console.log('Aeg salvestatud');
-            await loadDriversFromDB(); // värskenda
+            const newTimeEl = document.createElement('div');
+            newTimeEl.innerHTML = `<strong>Katse:</strong> <span class="value">${format(final)}</span>`;
+            detailsEl.appendChild(newTimeEl);
+            //await loadDriversFromDB(); // värskenda
           } else {
             console.error('Salvestamine ebaõnnestus');
           }
