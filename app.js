@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
       const detailsEl = document.createElement('div');
       detailsEl.className = 'driverDetails';
-      details.innerHTML = `
+      detailsEl.innerHTML = `
         <div><strong>Auto:</strong> <span class="value">${driver.details?.car || '—'}</span></div>
         <div><strong>Meeskond:</strong> <span class="value">${driver.details?.teamName || '—'}</span></div>
         <div><strong>Kvalifikatsioon:</strong> <span class="value">${driver.details?.qualificationsBestResult || '—'} (max: ${driver.details?.qualificationsHighestScore || 0})</span></div>
