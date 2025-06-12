@@ -7,13 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedDriverId = null;
   let activeClass = 'Pro';
 
-  function formatTime(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const centiseconds = Math.floor((ms % 1000) / 10);
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
-  }
+  
 
   async function loadDriversFromDB(classFilter = null) {
     if (classFilter) activeClass = classFilter;
@@ -209,7 +203,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadDriversFromDB('Pro');
 });
-
+function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const centiseconds = Math.floor((ms % 1000) / 10);
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+  }
 function openTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(tab => {
       tab.style.display = 'none';
