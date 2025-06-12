@@ -22,30 +22,50 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Kuvamine
-  function render() {
+    function render() {
     const driverList = document.getElementById('driverList');
     if (!driverList) return;
     driverList.innerHTML = '';
-
+  
     drivers.forEach(driver => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'driver-wrapper';
+  
       const el = document.createElement('div');
       el.className = 'driver';
       el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality || driver.countryCode})`;
-      el.addEventListener('click', () => showDetails(driver));
-      driverList.appendChild(el);
+      el.addEventListener('click', () => toggleDetails(driver, wrapper));
+  
+      wrapper.appendChild(el);
+      driverList.appendChild(wrapper);
     });
   }
-
-  // Detailvaade
-  function showDetails(driver) {
-    document.getElementById('detailName').textContent = driver.competitorName || '—';
-    document.getElementById('detailCar').textContent = driver.car || '—';
-    document.getElementById('detailTeam').textContent = driver.teamName || '—';
-    document.getElementById('detailQual').textContent = `${driver.qualificationsBestResult || '—'} (max: ${driver.qualificationsHighestScore || 0})`;
-    document.getElementById('detailTandem').textContent = driver.tandemsBestResult || '—';
-    document.getElementById('detailCountry').textContent = driver.countryCode || driver.nationality || '—';
-
-    document.getElementById('driverDetails').style.display = 'block';
+  
+  function toggleDetails(driver, wrapper) {
+    // Eemalda teistelt detailid
+    document.querySelectorAll('.driverDetails').forEach(el => el.remove());
+  
+    // Kui detailid juba avatud selles wrapperis, siis sulge
+    if (wrapper.classList.contains('open')) {
+      wrapper.classList.remove('open');
+      return;
+    }
+  
+    // Sulge teised
+    document.querySelectorAll('.driver-wrapper').forEach(w => w.classList.remove('open'));
+    wrapper.classList.add('open');
+  
+    const details = document.createElement('div');
+    details.className = 'driverDetails';
+    details.innerHTML = `
+      <div><strong>Auto:</strong> ${driver.car || '—'}</div>
+      <div><strong>Meeskond:</strong> ${driver.teamName || '—'}</div>
+      <div><strong>Kvalifikatsioon:</strong> ${driver.qualificationsBestResult || '—'} (max: ${driver.qualificationsHighestScore || 0})</div>
+      <div><strong>Tandem:</strong> ${driver.tandemsBestResult || '—'}</div>
+      <div><strong>Riik:</strong> ${driver.countryCode || driver.nationality || '—'}</div>
+    `;
+  
+    wrapper.appendChild(details);
   }
 
   // Start/Stop taimer
