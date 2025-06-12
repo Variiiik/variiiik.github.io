@@ -2,14 +2,13 @@ let drivers = [];
 let timerInterval = null;
 let startTime = null;
 
-// Lae andmebaasist sõitjad
 async function loadDriversFromDB() {
   try {
     const response = await fetch('https://spotter-backend-asvo.onrender.com/api/drivers');
     const data = await response.json();
 
     if (Array.isArray(data)) {
-      drivers = data;         // ⬅️ Parandus siia
+      drivers = data;
       render();
     } else {
       console.error('Saadud andmed ei ole massiiv:', data);
@@ -19,8 +18,6 @@ async function loadDriversFromDB() {
   }
 }
 
-
-// Kujunda sõitjate nimekiri
 function render() {
   const driverList = document.getElementById('driverList');
   driverList.innerHTML = '';
@@ -28,12 +25,27 @@ function render() {
   drivers.forEach(driver => {
     const el = document.createElement('div');
     el.className = 'driver';
-    el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.nationality})`;
+    el.textContent = `${driver.competitionNumbers} - ${driver.competitorName} (${driver.countryCode})`;
+    el.addEventListener('click', () => showDriverDetails(driver));
     driverList.appendChild(el);
   });
 }
 
-// Start/Stop nupud
+function showDriverDetails(driver) {
+  const details = `
+    <h3>${driver.competitorName}</h3>
+    <p><strong>Auto:</strong> ${driver.car}</p>
+    <p><strong>Tiim:</strong> ${driver.teamName}</p>
+    <p><strong>Riik:</strong> ${driver.countryCode}</p>
+    <p><strong>Parim kvalifikatsioon:</strong> ${driver.qualificationsBestResult} (${driver.qualificationsHighestScore}p)</p>
+    <p><strong>Parim tandemsõit:</strong> ${driver.tandemsBestResult}</p>
+  `;
+
+  const container = document.getElementById('driverDetails');
+  container.innerHTML = details;
+  container.style.display = 'block';
+}
+
 document.getElementById('startBtn').addEventListener('click', () => {
   if (!timerInterval) {
     startTime = Date.now();
@@ -49,48 +61,23 @@ document.getElementById('stopBtn').addEventListener('click', () => {
 function updateTimer() {
   const now = Date.now();
   const diff = now - startTime;
-
   const seconds = Math.floor(diff / 1000);
   const milliseconds = diff % 1000;
-
-  document.getElementById('timerDisplay').textContent =
-    `${seconds}.${milliseconds.toString().padStart(3, '0')} s`;
+  document.getElementById('timerDisplay').textContent = `${seconds}.${milliseconds.toString().padStart(3, '0')} s`;
 }
 
-// Sõitja lisamine
-document.getElementById('addDriverForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const name = document.getElementById('nameInput').value;
-  const number = document.getElementById('numberInput').value;
-  const nationality = document.getElementById('nationalityInput').value;
-
-  const newDriver = {
-    competitorName: name,
-    competitionNumbers: number,
-    mostCommonNr: parseInt(number),
-    nationality: nationality,
-    competitionClass: 'Pro',
-    status: 1
-  };
-
+document.getElementById('syncBtn').addEventListener('click', async () => {
   try {
-    const res = await fetch('/api/drivers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newDriver)
-    });
-
+    const res = await fetch('https://spotter-backend-asvo.onrender.com/api/sync-drivers', { method: 'POST' });
     if (res.ok) {
+      alert('Sõitjad sünkroniseeritud!');
       await loadDriversFromDB();
-      document.getElementById('addDriverForm').reset();
     } else {
-      console.error('Lisamine ebaõnnestus');
+      alert('Sünkroniseerimine ebaõnnestus');
     }
   } catch (err) {
-    console.error('Viga lisamisel:', err);
+    console.error('Viga sünkroniseerimisel:', err);
   }
 });
 
-// Lae alguses
 loadDriversFromDB();
