@@ -100,41 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('timerDisplay').textContent =
       `${seconds}.${milliseconds.toString().padStart(3, '0')} s`;
   }
-
-  // Lisa uus sõitja vormi kaudu
-  document.getElementById('addDriverForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById('nameInput').value;
-    const number = document.getElementById('numberInput').value;
-    const nationality = document.getElementById('nationalityInput').value;
-
-    const newDriver = {
-      competitorName: name,
-      competitionNumbers: number,
-      mostCommonNr: parseInt(number),
-      nationality: nationality,
-      competitionClass: 'Pro',
-      status: 1
-    };
-
-    try {
-      const res = await fetch(`${API_BASE}/api/drivers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newDriver)
-      });
-
-      if (res.ok) {
-        await loadDriversFromDB();
-        document.getElementById('addDriverForm').reset();
-      } else {
-        console.error('Lisamine ebaõnnestus');
-      }
-    } catch (err) {
-      console.error('Viga lisamisel:', err);
-    }
-  });
+  
 
   // Sünkrooni – töötab POST-iga
   window.syncDrivers = async function(driverClass) {
