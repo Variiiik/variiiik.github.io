@@ -93,9 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const now = Date.now();
     const diff = now - startTime;
-    const seconds = Math.floor(diff / 1000);
-    const milliseconds = diff % 1000;
-    const timeInSeconds = parseFloat(`${seconds}.${milliseconds.toString().padStart(3, '0')}`);
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    const centiseconds = Math.floor((diff % 1000) / 10);
+    
+    const timeInSeconds = minutes * 60 + seconds + centiseconds / 100;
 
     document.getElementById('timerDisplay').textContent = `${timeInSeconds} s`;
 
@@ -117,12 +119,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function updateTimer() {
-    const now = Date.now();
-    const diff = now - startTime;
-    const seconds = Math.floor(diff / 1000);
-    const milliseconds = diff % 1000;
-    document.getElementById('timerDisplay').textContent =
-      `${seconds}.${milliseconds.toString().padStart(3, '0')} s`;
+  const now = Date.now();
+  const diff = now - startTime;
+
+  const minutes = Math.floor(diff / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+  const centiseconds = Math.floor((diff % 1000) / 10);
+
+  document.getElementById('timerDisplay').textContent =
+    `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
   }
 
   // Sünkroniseerimisnupud
