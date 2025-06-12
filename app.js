@@ -207,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch(`${API_BASE}/api/analysis/top`);
       const data = await res.json();
+      console.log('Analüüs JSON:', data);
       const tbody = document.querySelector('#topDriversTable tbody');
       tbody.innerHTML = '';
 
