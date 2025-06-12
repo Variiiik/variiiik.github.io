@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
       driver.details = detail;
 
       const detailsEl = document.createElement('div');
+      const detailsEl = document.createElement('div');
       detailsEl.className = 'driverDetails';
       detailsEl.innerHTML = `
         <div><strong>Auto:</strong> <span class="value">${detail.car || '—'}</span></div>
@@ -79,8 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <div><strong>Tandem:</strong> <span class="value">${detail.tandemsBestResult || '—'}</span></div>
         <div><strong>Riik:</strong> <span class="value">${detail.countryCode || driver.nationality || '—'}</span></div>
       `;
-
-      if (detail.times && detail.times.length > 0) {
+      
+      if (Array.isArray(detail.times) && detail.times.length > 0) {
         const timesHtml = detail.times
           .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t)}</span></div>`)
           .join('');
@@ -88,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
       }
+
 
       wrapper.appendChild(detailsEl);
     } catch (err) {
