@@ -71,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
       driver.details = detail;
 
       const detailsEl = document.createElement('div');
-      const detailsEl = document.createElement('div');
       detailsEl.className = 'driverDetails';
       detailsEl.innerHTML = `
         <div><strong>Auto:</strong> <span class="value">${detail.car || '—'}</span></div>
