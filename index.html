@@ -86,6 +86,7 @@
       });
       const index = tabId === 'timerTab' ? 0 : 1;
       document.querySelectorAll('.nav-link')[index].classList.add('active');
+      document.addEventListener('DOMContentLoaded', () => openTab('timerTab'));
     }
   </script>
 </body>
