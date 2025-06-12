@@ -173,10 +173,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const syncProBtn = document.getElementById('syncPro');
-  const syncPro2Btn = document.getElementById('syncPro2');
+  //const syncPro2Btn = document.getElementById('syncPro2');
 
   if (syncProBtn) syncProBtn.addEventListener('click', () => syncDrivers('Pro'));
-  if (syncPro2Btn) syncPro2Btn.addEventListener('click', () => syncDrivers('Pro2'));
+  //if (syncPro2Btn) syncPro2Btn.addEventListener('click', () => syncDrivers('Pro2'));
 
   async function syncDrivers(driverClass) {
     try {
