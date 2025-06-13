@@ -79,9 +79,22 @@ async function toggleDetails(driver, wrapper) {
 
     if (driver.times && driver.times.length > 0) {
       const timesHtml = driver.times
-        .map((t, i) => `<div><strong>Katse ${i + 1}:</strong> <span class="value">${formatTime(t.time * 1000)}</span></div>`)
-        .join('');
-      detailsEl.innerHTML += `<div><strong>Ajad:</strong></div>${timesHtml}`;
+      .map((t, i) => {
+        const formattedTime = formatTime(t.time * 1000);
+        const timestamp = new Date(t.date).getTime(); // kasutame unikaalseks id-ks
+    
+        return `
+          <div>
+            <strong>Katse ${i + 1}:</strong> 
+            <span class="value">${formattedTime}</span>
+            <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteTime('${driver.competitorId}', '${timestamp}', this)">Kustuta</button>
+          </div>
+        `;
+      })
+      .join('');
+    detailsEl.innerHTML += `<div><strong>Ajad:</strong></div>${timesHtml}`;
+
+      
     } else {
       detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
     }
@@ -241,10 +254,24 @@ async function toggleDetails(driver, wrapper) {
       console.error('Sünkroonimisviga:', err);
     }
   }
-
+  async function deleteTime(competitorId, timestamp, btnEl) {
+    if (!confirm('Kas soovid selle aja kustutada?')) return;
   
-
+    try {
+      const res = await fetch(`${API_BASE}/api/drivers/${competitorId}/time/${timestamp}`, {
+        method: 'DELETE'
+      });
   
+      if (res.ok) {
+        // Eemalda rida DOM-ist
+        btnEl.parentElement.remove();
+      } else {
+        alert('Aja kustutamine ebaõnnestus.');
+      }
+    } catch (err) {
+      console.error('Kustutamise viga:', err);
+    }
+  }
 
   loadDriversFromDB('Pro');
 });
