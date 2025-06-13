@@ -319,3 +319,79 @@ async function deleteTime(competitorId, timestamp, btnEl) {
       console.error('Kustutamise viga:', err);
     }
   }
+async function loadCompareDrivers() {
+  try {
+    const res = await fetch(`${API_BASE}/api/drivers`);
+    const drivers = await res.json();
+
+    const driver1Select = document.getElementById('driver1');
+    const driver2Select = document.getElementById('driver2');
+
+    driver1Select.innerHTML = '<option value="">Vali sõitja</option>';
+    driver2Select.innerHTML = '<option value="">Vali sõitja</option>';
+
+    drivers.forEach(driver => {
+      const option1 = document.createElement('option');
+      option1.value = driver.competitorId;
+      option1.textContent = `${driver.competitorName} (#${driver.competitionNumbers})`;
+
+      const option2 = option1.cloneNode(true);
+
+      driver1Select.appendChild(option1);
+      driver2Select.appendChild(option2);
+    });
+
+    driver1Select.addEventListener('change', updateComparison);
+    driver2Select.addEventListener('change', updateComparison);
+  } catch (err) {
+    console.error('Viga sõitjate laadimisel võrdluses:', err);
+  }
+}
+
+async function updateComparison() {
+  const id1 = document.getElementById('driver1').value;
+  const id2 = document.getElementById('driver2').value;
+
+  if (!id1 || !id2 || id1 === id2) {
+    document.getElementById('compareResult').innerHTML = '<p class="text-warning">Vali kaks erinevat sõitjat.</p>';
+    return;
+  }
+
+  try {
+    const [res1, res2] = await Promise.all([
+      fetch(`${API_BASE}/api/drivers/${id1}`),
+      fetch(`${API_BASE}/api/drivers/${id2}`)
+    ]);
+    const [d1, d2] = await Promise.all([res1.json(), res2.json()]);
+
+    const avg1 = d1.times?.length ? d1.times.reduce((sum, t) => sum + t.time, 0) / d1.times.length : 0;
+    const avg2 = d2.times?.length ? d2.times.reduce((sum, t) => sum + t.time, 0) / d2.times.length : 0;
+
+    document.getElementById('compareResult').innerHTML = `
+      <table class="table table-bordered table-dark">
+        <thead>
+          <tr>
+            <th>Võrdlus</th>
+            <th>${d1.competitorName}</th>
+            <th>${d2.competitorName}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Katsete arv</td>
+            <td>${d1.times?.length || 0}</td>
+            <td>${d2.times?.length || 0}</td>
+          </tr>
+          <tr>
+            <td>Keskmine aeg</td>
+            <td>${formatTime(avg1 * 1000)}</td>
+            <td>${formatTime(avg2 * 1000)}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    console.error('Viga võrdluse laadimisel:', err);
+  }
+}
+
