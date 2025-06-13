@@ -62,7 +62,23 @@
 
       <h3 class="mt-4">Sõitjad</h3>
       <div id="driverList" class="driver-list"></div>
-
+            <div id="compare" class="tab-content" style="display: none;">
+        <h2>Võrdle kahte sõitjat</h2>
+      
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="driver1" class="form-label">Sõitja 1</label>
+            <select id="driver1" class="form-select"></select>
+          </div>
+          <div class="col-md-6">
+            <label for="driver2" class="form-label">Sõitja 2</label>
+            <select id="driver2" class="form-select"></select>
+          </div>
+        </div>
+      
+        <!-- 💡 Siia kuvatakse võrdlustulemus -->
+        <div id="compareResult" class="mt-4"></div>
+      </div>
       <div class="mb-3 mt-3">
         <button id="syncPro" class="btn btn-outline-light">Sünkrooni Pro</button>
       </div>
@@ -95,21 +111,20 @@
       document.querySelectorAll('.tab-content').forEach(tab => {
         tab.style.display = 'none';
       });
-
       document.querySelectorAll('#tabNav .nav-link').forEach(btn => {
         btn.classList.remove('active');
       });
-
+    
       const el = document.getElementById(tabId);
       if (el) el.style.display = 'block';
-
+    
       const tabButton = document.querySelector(`#tabNav .nav-link[onclick*="${tabId}"]`);
       if (tabButton) tabButton.classList.add('active');
-
-      if (tabId === 'analyse') {
-        loadAnalysis();
-      }
+    
+      if (tabId === 'analyse') loadAnalysis();
+      if (tabId === 'compare') loadCompareDrivers();
     }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       openTab('timerTab');
