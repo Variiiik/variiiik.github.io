@@ -254,24 +254,7 @@ async function toggleDetails(driver, wrapper) {
       console.error('Sünkroonimisviga:', err);
     }
   }
-  async function deleteTime(competitorId, timestamp, btnEl) {
-    if (!confirm('Kas soovid selle aja kustutada?')) return;
   
-    try {
-      const res = await fetch(`${API_BASE}/api/drivers/${competitorId}/time/${timestamp}`, {
-        method: 'DELETE'
-      });
-  
-      if (res.ok) {
-        // Eemalda rida DOM-ist
-        btnEl.parentElement.remove();
-      } else {
-        alert('Aja kustutamine ebaõnnestus.');
-      }
-    } catch (err) {
-      console.error('Kustutamise viga:', err);
-    }
-  }
 
   loadDriversFromDB('Pro');
 });
@@ -316,5 +299,23 @@ async function loadAnalysis() {
       });
     } catch (err) {
       console.error('Analüüsi laadimine ebaõnnestus:', err);
+    }
+  }
+async function deleteTime(competitorId, timestamp, btnEl) {
+    if (!confirm('Kas soovid selle aja kustutada?')) return;
+  
+    try {
+      const res = await fetch(`${API_BASE}/api/drivers/${competitorId}/time/${timestamp}`, {
+        method: 'DELETE'
+      });
+  
+      if (res.ok) {
+        // Eemalda rida DOM-ist
+        btnEl.parentElement.remove();
+      } else {
+        alert('Aja kustutamine ebaõnnestus.');
+      }
+    } catch (err) {
+      console.error('Kustutamise viga:', err);
     }
   }
