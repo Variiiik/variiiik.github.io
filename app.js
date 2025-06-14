@@ -215,50 +215,49 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Kustutamise viga:', err);
     }
   }
+
+  function openTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.style.display = 'none';
+    });
+
+    const el = document.getElementById(tabId);
+    if (el) el.style.display = 'block';
+
+    if (tabId === 'analyse') {
+      loadAnalysis();
+    }
+  }
+
+  async function loadAnalysis() {
+    try {
+      const res = await fetch(`${API_BASE}/api/analysis/top`);
+      const data = await res.json();
+      const tbody = document.querySelector('#topDriversTable tbody');
+      tbody.innerHTML = '';
+
+      data.forEach((d, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${d.competitorName}</td>
+          <td>${d.competitionNumbers || '—'}</td>
+          <td>${formatTime(d.averageTime * 1000)}</td>
+          <td>${formatTime(d.bestTime * 1000)}</td>
+          <td>${d.attemptCount}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error('Analüüsi laadimine ebaõnnestus:', err);
+    }
+  }
+
   window.deleteTime = deleteTime;
+  window.openTab = openTab;
+  window.loadAnalysis = loadAnalysis;
 
   document.getElementById('syncPro')?.addEventListener('click', () => loadDriversFromDB('Pro'));
   setupGlobalTimer();
   loadDriversFromDB('Pro');
 });
-function openTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(tab => {
-    tab.style.display = 'none';
-  });
-
-  const el = document.getElementById(tabId);
-  if (el) el.style.display = 'block';
-
-  // Kui analyse tab, lae andmed
-  if (tabId === 'analyse') {
-    loadAnalysis();
-  }
-}
-
-async function loadAnalysis() {
-  try {
-    const res = await fetch(`${API_BASE}/api/analysis/top`);
-    const data = await res.json();
-    const tbody = document.querySelector('#topDriversTable tbody');
-    tbody.innerHTML = '';
-
-    data.forEach((d, index) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${d.competitorName}</td>
-        <td>${d.competitionNumbers || '—'}</td>
-        <td>${formatTime(d.averageTime * 1000)}</td>
-        <td>${formatTime(d.bestTime * 1000)}</td>
-        <td>${d.attemptCount}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error('Analüüsi laadimine ebaõnnestus:', err);
-  }
-}
-window.deleteTime = deleteTime;
-window.openTab = openTab;
-window.loadAnalysis = loadAnalysis;
-
