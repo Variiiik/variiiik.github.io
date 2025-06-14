@@ -6,6 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let startTime = null;
   let selectedDriverId = null;
   let activeClass = 'Pro';
+  let globalTimerInterval = null;
+  let globalTimerStart = null;
+  let globalTimerDisplay = null;
+
 
   
 
@@ -23,6 +27,30 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.error('Viga laadimisel:', err);
     }
+  }
+  function setupGlobalTimer() {
+    const container = document.getElementById('globalTimerArea');
+    if (!container) return;
+  
+    globalTimerDisplay = document.createElement('div');
+    globalTimerDisplay.className = 'timer my-3';
+    globalTimerDisplay.textContent = '00:00.00';
+  
+    const startBtn = document.createElement('button');
+    startBtn.textContent = 'Start';
+    startBtn.className = 'btn btn-success me-2';
+    startBtn.addEventListener('click', () => {
+      if (globalTimerInterval) return; // juba töötab
+  
+      globalTimerStart = Date.now();
+      globalTimerInterval = setInterval(() => {
+        const ms = Date.now() - globalTimerStart;
+        globalTimerDisplay.textContent = format(ms);
+      }, 50);
+    });
+  
+    container.appendChild(globalTimerDisplay);
+    container.appendChild(startBtn);
   }
 
   async function render() {
@@ -148,36 +176,41 @@ async function toggleDetails(driver, wrapper) {
       stopBtn.disabled = false;
     });
 
-    stopBtn.addEventListener('click', async () => {
-      clearInterval(localTimer);
-      const final = Date.now() - localStart;
-      timerEl.textContent = format(final);
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
+   stopBtn.addEventListener('click', async () => {
+  if (!globalTimerInterval || globalTimerStart === null) {
+    alert('Taimer ei tööta!');
+    return;
+  }
 
-      const seconds = Math.floor(final / 1000);
-      const centis = Math.floor((final % 1000) / 10);
-      const totalSeconds = seconds + centis / 100;
+  const final = Date.now() - globalTimerStart;
+  clearInterval(globalTimerInterval);
+  globalTimerInterval = null;
+  globalTimerStart = null;
+  globalTimerDisplay.textContent = format(final);
 
-      try {
-        const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}/time`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ time: totalSeconds })
-        });
+  const seconds = Math.floor(final / 1000);
+  const centis = Math.floor((final % 1000) / 10);
+  const totalSeconds = seconds + centis / 100;
 
-        if (res.ok) {
-          console.log('Aeg salvestatud');
-          const newTimeEl = document.createElement('div');
-          newTimeEl.innerHTML = `<strong>Katse:</strong> <span class="value">${format(final)}</span>`;
-          detailsEl.appendChild(newTimeEl);
-        } else {
-          console.error('Salvestamine ebaõnnestus');
-        }
-      } catch (err) {
-        console.error('Võrguviga:', err);
-      }
+  try {
+    const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}/time`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ time: totalSeconds })
     });
+
+    if (res.ok) {
+      const newTimeEl = document.createElement('div');
+      newTimeEl.innerHTML = `<strong>Katse:</strong> <span class="value">${format(final)}</span>`;
+      detailsEl.appendChild(newTimeEl);
+    } else {
+      console.error('Salvestamine ebaõnnestus');
+    }
+  } catch (err) {
+    console.error('Võrguviga:', err);
+  }
+});
+
 
     // 📝 Märkus automaatse salvestusega
     const noteLabel = document.createElement('label');
@@ -254,8 +287,9 @@ async function toggleDetails(driver, wrapper) {
       console.error('Sünkroonimisviga:', err);
     }
   }
-  
 
+
+  setupGlobalTimer();
   loadDriversFromDB('Pro');
 });
 function formatTime(ms) {
