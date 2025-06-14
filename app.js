@@ -229,32 +229,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function loadAnalysis() {
-    try {
-      const res = await fetch(`${API_BASE}/api/analysis/top`);
-      const data = await res.json();
-      const tbody = document.querySelector('#topDriversTable tbody');
-      tbody.innerHTML = '';
-
-      data.forEach((d, index) => {
-        const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${d.competitorName}</td>
-        <td>${d.competitionNumbers || '—'}</td>
-        <td>${Number.isFinite(d.bestConsecutiveAvg3) ? formatTime(d.bestConsecutiveAvg3 * 1000) : '—'}</td>
-        <td>${formatTime(d.bestTime * 1000)}</td>
-        <td>${formatTime(d.averageTime * 1000)}</td>
-        <td>${d.attemptCount || 0}</td>
-      `;
-
-
-        tbody.appendChild(tr);
-      });
-    } catch (err) {
-      console.error('Analüüsi laadimine ebaõnnestus:', err);
-    }
+async function loadAnalysis() {
+  try {
+    const res = await fetch(`${API_BASE}/api/analysis/top`);
+    const data = await res.json();
+    renderAnalysisTable(data);
+  } catch (err) {
+    console.error('Analüüsi laadimine ebaõnnestus:', err);
   }
+}
+
+function renderAnalysisTable(data) {
+  const sortBy = document.getElementById('sortSelect')?.value || 'bestTime';
+
+  const sorted = [...data].sort((a, b) => {
+    if (sortBy === 'averageTime') return a.averageTime - b.averageTime;
+    return a.bestTime - b.bestTime;
+  });
+
+  const tbody = document.querySelector('#topDriversTable tbody');
+  tbody.innerHTML = '';
+
+  sorted.forEach((d, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${d.competitorName}</td>
+      <td>${d.competitionNumbers || '—'}</td>
+      <td>${d.bestConsecutiveAvg3 ? formatTime(d.bestConsecutiveAvg3 * 1000) : '—'}</td>
+      <td>${formatTime(d.bestTime * 1000)}</td>
+      <td>${formatTime(d.averageTime * 1000)}</td>
+      <td>${d.attemptCount}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 
   window.deleteTime = deleteTime;
   window.openTab = openTab;
