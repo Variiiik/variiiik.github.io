@@ -215,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Kustutamise viga:', err);
     }
   }
+  window.deleteTime = deleteTime;
 
   document.getElementById('syncPro')?.addEventListener('click', () => loadDriversFromDB('Pro'));
   setupGlobalTimer();
