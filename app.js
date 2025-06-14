@@ -242,11 +242,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${index + 1}</td>
         <td>${d.competitorName}</td>
         <td>${d.competitionNumbers || '—'}</td>
-        <td>${formatTime(d.bestConsecutiveAvg3 * 1000)}</td>
+        <td>${Number.isFinite(d.bestConsecutiveAvg3) ? formatTime(d.bestConsecutiveAvg3 * 1000) : '—'}</td>
         <td>${formatTime(d.bestTime * 1000)}</td>
         <td>${formatTime(d.averageTime * 1000)}</td>
         <td>${d.attemptCount || 0}</td>
       `;
+
 
         tbody.appendChild(tr);
       });
