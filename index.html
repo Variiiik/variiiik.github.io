@@ -86,7 +86,14 @@
     </div>
 
     <div id="analyse" class="tab-content" style="display: none;">
-      <h2>Top 5 Kiiremat Sõitjat</h2>
+      <h2>Top Kiiremat Sõitjad</h2>
+      <div class="mb-3">
+  <label for="sortSelect" class="form-label text-white">Sorteeri:</label>
+  <select id="sortSelect" class="form-select form-select-sm w-auto">
+    <option value="bestTime">Parim aeg</option>
+    <option value="averageTime">Keskmine aeg</option>
+  </select>
+</div>
       <table id="topDriversTable" class="table table-dark table-bordered">
         <thead>
           <tr>
