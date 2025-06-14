@@ -311,30 +311,29 @@ function openTab(tabId) {
     }
   }
 async function loadAnalysis() {
-    try {
-      const res = await fetch(`${API_BASE}/api/analysis/top`);
-      const data = await res.json();
-      console.log('Analüüs JSON:', data);
-      const tbody = document.querySelector('#topDriversTable tbody');
-      tbody.innerHTML = '';
+  try {
+    const res = await fetch(`${API_BASE}/api/analysis/top`);
+    const data = await res.json();
+    const tbody = document.querySelector('#topDriversTable tbody');
+    tbody.innerHTML = '';
 
-      data.forEach((d, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${d.competitorName}</td>
-          <td>${d.competitionNumbers || '—'}</td>
-          <td>${formatTime(d.bestConsecutiveAvg3 * 1000)}${d.isFallback ? ' *' : ''}</td>
-          <td>${formatTime(d.bestTime * 1000)}</td>
-          <td>${formatTime(d.averageTime * 1000)}</td>
-          <td>${d.attemptCount}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    } catch (err) {
-      console.error('Analüüsi laadimine ebaõnnestus:', err);
-    }
+    data.forEach((d, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${d.competitorName}</td>
+        <td>${d.competitionNumbers || '—'}</td>
+        <td>${formatTime(d.averageTime * 1000)}</td>
+        <td>${formatTime(d.bestTime * 1000)}</td>
+        <td>${d.attemptCount}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Analüüsi laadimine ebaõnnestus:', err);
   }
+}
+
 async function deleteTime(competitorId, timestamp, btnEl) {
     if (!confirm('Kas soovid selle aja kustutada?')) return;
   
