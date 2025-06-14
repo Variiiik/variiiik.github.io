@@ -8,38 +8,18 @@ function formatTime(ms) {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
 }
 
-function openTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(tab => {
-    tab.style.display = 'none';
-  });
-  const el = document.getElementById(tabId);
-  if (el) el.style.display = 'block';
-
-  if (tabId === 'analyse') {
-    loadAnalysis();
-  } else if (tabId === 'compareTab') {
-    loadCompareDrivers();
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   let drivers = [];
-  let activeClass = 'Pro';
   let globalTimerInterval = null;
   let globalTimerStart = null;
   let globalTimerDisplay = null;
 
   async function loadDriversFromDB(classFilter = null) {
-    if (classFilter) activeClass = classFilter;
     try {
       const response = await fetch(`${API_BASE}/api/drivers`);
       const data = await response.json();
-      if (Array.isArray(data)) {
-        drivers = classFilter ? data.filter(d => d.competitionClass === classFilter) : data;
-        render();
-      } else {
-        console.error('Vigane andmevorming:', data);
-      }
+      drivers = classFilter ? data.filter(d => d.competitionClass === classFilter) : data;
+      render();
     } catch (err) {
       console.error('Viga laadimisel:', err);
     }
@@ -94,10 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function toggleDetails(driver, wrapper) {
     document.querySelectorAll('.driverDetails').forEach(el => el.remove());
+
     if (wrapper.classList.contains('open')) {
       wrapper.classList.remove('open');
       return;
     }
+
     document.querySelectorAll('.driver-wrapper').forEach(w => w.classList.remove('open'));
     wrapper.classList.add('open');
 
@@ -122,23 +104,60 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
 
       if (driver.times && driver.times.length > 0) {
-        const timesHtml = driver.times.map((t, i) => {
-          const formattedTime = formatTime(t.time * 1000);
-          const timestamp = new Date(t.date).getTime();
-          return `
-            <div>
-              <strong>Katse ${i + 1}:</strong>
-              <span class="value">${formattedTime}</span>
-              <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteTime('${driver.competitorId}', '${timestamp}', this)">Kustuta</button>
-            </div>
-          `;
-        }).join('');
+        const timesHtml = driver.times
+          .map((t, i) => {
+            const formattedTime = formatTime(t.time * 1000);
+            const timestamp = new Date(t.date).getTime();
+            return `
+              <div>
+                <strong>Katse ${i + 1}:</strong> 
+                <span class="value">${formattedTime}</span>
+                <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteTime('${driver.competitorId}', '${timestamp}', this)">Kustuta</button>
+              </div>
+            `;
+          })
+          .join('');
         detailsEl.innerHTML += `<div><strong>Ajad:</strong></div>${timesHtml}`;
       } else {
         detailsEl.innerHTML += `<div><strong>Ajad:</strong> <span class="value">—</span></div>`;
       }
 
-      // Märkus
+      const stopBtn = document.createElement('button');
+      stopBtn.textContent = 'Stop ja salvesta aeg';
+      stopBtn.className = 'btn btn-warning btn-sm mt-2';
+      stopBtn.addEventListener('click', async () => {
+        if (!globalTimerInterval || globalTimerStart === null) {
+          alert('Taimer ei tööta!');
+          return;
+        }
+
+        const final = Date.now() - globalTimerStart;
+        clearInterval(globalTimerInterval);
+        globalTimerInterval = null;
+        globalTimerStart = null;
+        globalTimerDisplay.textContent = formatTime(final);
+
+        const seconds = Math.floor(final / 1000);
+        const centis = Math.floor((final % 1000) / 10);
+        const totalSeconds = seconds + centis / 100;
+
+        try {
+          const res = await fetch(`${API_BASE}/api/drivers/${driver.competitorId}/time`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ time: totalSeconds })
+          });
+
+          if (res.ok) {
+            await loadDriversFromDB();
+          } else {
+            console.error('Salvestamine ebaõnnestus');
+          }
+        } catch (err) {
+          console.error('Võrguviga:', err);
+        }
+      });
+
       const noteLabel = document.createElement('label');
       noteLabel.textContent = 'Märkus:';
       noteLabel.className = 'mt-3';
@@ -155,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
       saveStatus.textContent = '💾 Salvestatud';
 
       let noteTimer = null;
-
       noteTextarea.addEventListener('input', () => {
         if (noteTimer) clearTimeout(noteTimer);
         noteTimer = setTimeout(async () => {
@@ -167,150 +185,38 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (res.ok) {
               saveStatus.style.display = 'block';
-              setTimeout(() => {
-                saveStatus.style.display = 'none';
-              }, 2000);
+              setTimeout(() => { saveStatus.style.display = 'none'; }, 2000);
+            } else {
+              console.error('Märkuse salvestamine ebaõnnestus');
             }
           } catch (err) {
-            console.error('Märkuse salvestamine ebaõnnestus:', err);
+            console.error('Võrguviga märkuse salvestamisel:', err);
           }
         }, 1000);
       });
 
+      detailsEl.appendChild(stopBtn);
       detailsEl.appendChild(noteLabel);
       detailsEl.appendChild(noteTextarea);
       detailsEl.appendChild(saveStatus);
       wrapper.appendChild(detailsEl);
-
     } catch (err) {
       console.error('Detailide laadimine ebaõnnestus:', err);
     }
   }
 
-  async function syncDrivers(driverClass) {
+  async function deleteTime(competitorId, timestamp, btnEl) {
+    if (!confirm('Kas soovid selle aja kustutada?')) return;
     try {
-      const response = await fetch(`${API_BASE}/api/sync-driver/${driverClass}`, { method: 'POST' });
-      if (response.ok) {
-        await loadDriversFromDB(driverClass);
-      } else {
-        console.error('Sünkroonimine ebaõnnestus');
-      }
+      const res = await fetch(`${API_BASE}/api/drivers/${competitorId}/time/${timestamp}`, { method: 'DELETE' });
+      if (res.ok) btnEl.parentElement.remove();
+      else alert('Aja kustutamine ebaõnnestus.');
     } catch (err) {
-      console.error('Sünkroonimisviga:', err);
+      console.error('Kustutamise viga:', err);
     }
   }
 
-  const syncProBtn = document.getElementById('syncPro');
-  if (syncProBtn) syncProBtn.addEventListener('click', () => syncDrivers('Pro'));
-
+  document.getElementById('syncPro')?.addEventListener('click', () => loadDriversFromDB('Pro'));
   setupGlobalTimer();
   loadDriversFromDB('Pro');
 });
-
-async function loadAnalysis() {
-  try {
-    const res = await fetch(`${API_BASE}/api/analysis/top`);
-    const data = await res.json();
-    const tbody = document.querySelector('#topDriversTable tbody');
-    tbody.innerHTML = '';
-
-    data.forEach((d, index) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${d.competitorName}</td>
-        <td>${d.competitionNumbers || '—'}</td>
-        <td>${formatTime(d.averageTime * 1000)}</td>
-        <td>${formatTime(d.bestTime * 1000)}</td>
-        <td>${d.attemptCount}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error('Analüüsi laadimine ebaõnnestus:', err);
-  }
-}
-
-async function deleteTime(competitorId, timestamp, btnEl) {
-  if (!confirm('Kas soovid selle aja kustutada?')) return;
-  try {
-    const res = await fetch(`${API_BASE}/api/drivers/${competitorId}/time/${timestamp}`, { method: 'DELETE' });
-    if (res.ok) {
-      btnEl.parentElement.remove();
-    } else {
-      alert('Aja kustutamine ebaõnnestus.');
-    }
-  } catch (err) {
-    console.error('Kustutamise viga:', err);
-  }
-}
-
-async function loadCompareDrivers() {
-  try {
-    const res = await fetch(`${API_BASE}/api/drivers`);
-    const drivers = await res.json();
-    const driver1Select = document.getElementById('driver1');
-    const driver2Select = document.getElementById('driver2');
-
-    driver1Select.innerHTML = '<option value="">Vali sõitja</option>';
-    driver2Select.innerHTML = '<option value="">Vali sõitja</option>';
-
-    drivers.forEach(driver => {
-      const opt = new Option(`${driver.competitorName} (#${driver.competitionNumbers})`, driver.competitorId);
-      driver1Select.appendChild(opt);
-      driver2Select.appendChild(opt.cloneNode(true));
-    });
-
-    driver1Select.addEventListener('change', updateComparison);
-    driver2Select.addEventListener('change', updateComparison);
-  } catch (err) {
-    console.error('Viga sõitjate laadimisel võrdluses:', err);
-  }
-}
-
-async function updateComparison() {
-  const id1 = document.getElementById('driver1').value;
-  const id2 = document.getElementById('driver2').value;
-
-  if (!id1 || !id2 || id1 === id2) {
-    document.getElementById('compareResult').innerHTML = '<p class="text-warning">Vali kaks erinevat sõitjat.</p>';
-    return;
-  }
-
-  try {
-    const [res1, res2] = await Promise.all([
-      fetch(`${API_BASE}/api/drivers/${id1}`),
-      fetch(`${API_BASE}/api/drivers/${id2}`)
-    ]);
-    const [d1, d2] = await Promise.all([res1.json(), res2.json()]);
-
-    const avg1 = d1.times?.length ? d1.times.reduce((sum, t) => sum + t.time, 0) / d1.times.length : 0;
-    const avg2 = d2.times?.length ? d2.times.reduce((sum, t) => sum + t.time, 0) / d2.times.length : 0;
-
-    document.getElementById('compareResult').innerHTML = `
-      <table class="table table-bordered table-dark">
-        <thead>
-          <tr>
-            <th>Võrdlus</th>
-            <th>${d1.competitorName}</th>
-            <th>${d2.competitorName}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Katsete arv</td>
-            <td>${d1.times?.length || 0}</td>
-            <td>${d2.times?.length || 0}</td>
-          </tr>
-          <tr>
-            <td>Keskmine aeg</td>
-            <td>${formatTime(avg1 * 1000)}</td>
-            <td>${formatTime(avg2 * 1000)}</td>
-          </tr>
-        </tbody>
-      </table>
-    `;
-  } catch (err) {
-    console.error('Viga võrdluse laadimisel:', err);
-  }
-}
