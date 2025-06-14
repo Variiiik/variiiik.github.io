@@ -273,4 +273,5 @@ function renderAnalysisTable(data) {
   document.getElementById('syncPro')?.addEventListener('click', () => loadDriversFromDB('Pro'));
   setupGlobalTimer();
   loadDriversFromDB('Pro');
+  document.getElementById('sortSelect')?.addEventListener('change', loadAnalysis);
 });
