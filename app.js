@@ -238,14 +238,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       data.forEach((d, index) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${d.competitorName}</td>
-          <td>${d.competitionNumbers || '—'}</td>
-          <td>${formatTime(d.averageTime * 1000)}</td>
-          <td>${formatTime(d.bestTime * 1000)}</td>
-          <td>${d.attemptCount}</td>
-        `;
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${d.competitorName}</td>
+        <td>${d.competitionNumbers || '—'}</td>
+        <td>${formatTime(d.bestConsecutiveAvg3 * 1000)}</td>
+        <td>${formatTime(d.bestTime * 1000)}</td>
+        <td>${formatTime(d.averageTime * 1000)}</td>
+        <td>${d.attemptCount || 0}</td>
+      `;
+
         tbody.appendChild(tr);
       });
     } catch (err) {
