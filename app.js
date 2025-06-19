@@ -18,7 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const response = await fetch(`${API_BASE}/api/drivers`);
       const data = await response.json();
-      drivers = classFilter ? data.filter(d => d.competitionClass === classFilter) : data;
+      drivers = classFilter
+        ? data.filter(d => (d.competitionClass || '').toLowerCase() === classFilter.toLowerCase())
+        : data;
       render();
     } catch (err) {
       console.error('Viga laadimisel:', err);
